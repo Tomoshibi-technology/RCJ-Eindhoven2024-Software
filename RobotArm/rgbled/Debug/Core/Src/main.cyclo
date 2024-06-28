@@ -1,0 +1,9 @@
+main.cpp:84:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	1
+main.cpp:103:5:int main()	2
+main.cpp:171:6:void SystemClock_Config()	3
+main.cpp:218:13:void MX_TIM3_Init()	6
+main.cpp:275:13:void MX_DMA_Init()	1
+main.cpp:293:13:void MX_GPIO_Init()	1
+main.cpp:314:6:void Error_Handler()	1
+main.cpp:323:1:void __static_initialization_and_destruction_0(int, int)	3
+main.cpp:323:1:cpp)	1

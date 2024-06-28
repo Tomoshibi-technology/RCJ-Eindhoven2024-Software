@@ -1,0 +1,6 @@
+cmath:184:3:constexpr float std::cos(float)	1
+calc.cpp:4:9:int16_t CALC::similarityPeak(uint8_t, int16_t, uint16_t, uint16_t, uint16_t)	4
+calc.cpp:28:9:int16_t CALC::similarityRise(uint8_t, int16_t, uint16_t, uint16_t, uint16_t)	6
+calc.cpp:60:9:int16_t CALC::similarityFall(uint8_t, int16_t, uint16_t, uint16_t, uint16_t)	6
+calc.cpp:92:9:int16_t CALC::similarityNormal(uint8_t, int16_t, uint16_t)	4
+calc.cpp:114:9:uint8_t CALC::range(int8_t, int16_t, uint16_t)	4

@@ -1,0 +1,4 @@
+STS.cpp:3:1:STS::STS(UART_HandleTypeDef*, uint8_t)	1
+STS.cpp:9:6:void STS::move(int16_t, int16_t, int16_t)	7
+STS.cpp:37:6:void STS::send()	2
+STS.cpp:53:9:int16_t STS::calculate_position(int16_t)	3
