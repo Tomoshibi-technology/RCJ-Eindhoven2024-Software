@@ -48,7 +48,7 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-volatile uint32_t m_counter;//タイマーのカウンタ、1msで1増える
+volatile uint32_t m_counter;//タイマ�?�のカウンタ�?1msで1増え�?
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,14 +58,14 @@ static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void adjindex(int* index, uint8_t* buf);//バッファの読み込み位置補正
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void initialise_monitor_handles(void);//printfの初期化のプロトタイプ宣言
+extern void initialise_monitor_handles(void);//printfの初期化�?�プロトタイプ宣�?
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//タイマー割り込みの内容、1msであふれて1増やす
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//タイマ�?�割り込みの�?容�?1msであ�?�れて1増や�?
 {
     if (htim == &htim3){
         m_counter++;
@@ -90,7 +90,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  initialise_monitor_handles();//printf初期化
+  initialise_monitor_handles();//printf初期�?
 
   /* USER CODE END Init */
 
@@ -107,75 +107,72 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim3);//タイマー開始
+  HAL_TIM_Base_Start_IT(&htim3);//タイマ�?�開�?
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//タイマーカウンターの初期条件をとる
+//タイマ�?�カウンターの初期条件をと�?
   uint32_t p_counter;
   p_counter = m_counter;
 
-//DMA関係の配列と変数を宣言
-  uint8_t rxBuf[128];//レシーブバッファの用意、とりあえず0入れとくべきかも
-  int index;//バッファの書き出し位置
-  int indexRead = 0;//現在の読み込み位置、初期値は0に設定
-  int remainData;//読み込んでいない残りのデータ数
-  uint8_t readData = 0;//データの内容を格納する変数
-//DMAスタート
-  HAL_UART_Receive_DMA(&huart2,rxBuf,sizeof(rxBuf));
+//DMA関係�?�配�?�と変数を宣�?
+  uint8_t rxBuf[128]={};//レシーブバ�?ファの用意�?�とりあえず0入れとくべきか�?
+  uint8_t rxData[2]={0,0};//�?ータを�?�納する�?��??
+  uint8_t readData;//�?ータ探索用の�?時的なハコ
+  uint8_t ID = 0;//自身のID
+  int index;//バッファの書き�?�し位置
+  int indexRead;//読み込み位置、�?�期値は0に設�?
 
 
-//whileここから！！！！！！！！！！！！！
+  HAL_UART_Receive_DMA(&huart2,rxBuf,sizeof(rxBuf));//DMAスター�?
+
+
+//whileここから?�?�?�?�?�?�?�?�?�?�?�?�?�?
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-//この下の数行は操作は間違ってないけど、ポインタでバッファ内の位置をいじくりたい
-//今はデータ数で位置を計算してる
-//バッファの書き出し位置のポインタを取ってくる操作を調べる必要あり
+	index = huart2.hdmarx->Instance->CNDTR;//バッファー残容�?
+	index = sizeof(rxBuf) - index;//�?新の受信�?ータ位置
+	indexRead = index - 25;//読み込み位置の設�?
+//	adjindex(&indexRead, rxBuf);//読み込み位置補正
+	if(indexRead < 0){indexRead = indexRead + sizeof(rxBuf);}
 
-	index = huart2.hdmarx->Instance->CNDTR;//バッファー残容量
-	index = sizeof(rxBuf) - index;//最新の受信データ位置
+	while(1){
+		readData = rxBuf[indexRead];//ID識別用の�?時的な変数
+		if(readData == 250+ID){//自�?のIDにたどりつ�?たと�?
+			for(int i=1; i<3; i++){//rxDataに格�?
+				int readPoint = indexRead + i;
+//				adjindex(&readPoint, rxBuf);
+				if(readPoint>sizeof(rxBuf)-1){readPoint = readPoint - sizeof(rxBuf);}
+				rxData[i-1] = rxBuf[readPoint];
+			}
+			break;
+		}
+		indexRead++;//�?個�?�める
+//		adjindex(&indexRead, rxBuf);//補正
+		if(indexRead>sizeof(rxBuf)-1){indexRead = indexRead - sizeof(rxBuf);}
+		if(indexRead == index){break;}//�?新位置まで読んでIDがなかったらブレイク
+	}
 
-	remainData = index - indexRead;//まだ読み込んでいないデータ数
+//	printf("%u::%u\n%lu\n", rxData[0], rxData[1], m_counter);
 
+//ここから先�?��?0.1秒ごとにprintfしてLEDをトグルするプログラ�?
+//普通にHAL_TIM_PeriodElapsedCallbackの中でど�?にかするべき�?�ような気もするけど�?ったん無�?
 
-//ここから先　リングバッファの仕様を根本から修正すべき
-//例えばindexReadが0,indexが127にある時は、indexがindexReadのすぐ後ろにある状態で危ないが、
-//このプログラムではそれが考慮されてない。index>indexReadならば通してしまっている
-//絶対的な距離を取って補正すべき
-//てかそもそも、書き出しが読み込みに追い付きそうなときの処理書かれてなくね
-//一個データ読んだら一個進めるだけでは
-
-
-	if(remainData < 0){remainData = remainData + sizeof(rxBuf);}
-	//読み込み済みデータ位置より最新の受信データ位置が前にある時(バッファー内で受信データが一周してた場合)値を補正
-
-	if(remainData > 0){
-		readData = rxBuf[indexRead];//データ読み込み
-		//最新データを読みたい時は[index-1]を読むだけ!!!!!!!
-	indexRead++;
-	if(indexRead == sizeof(rxBuf)){indexRead = 0;}
-
-//ここまでが問題
-
-
-//ここから先は、0.1秒ごとにprintfしてLEDをトグルするプログラム
-//普通にHAL_TIM_PeriodElapsedCallbackの中でどうにかするべきのような気もするけどいったん無視
-
-	  if(m_counter - p_counter > 100){
-	    printf("%u\n", totalAng);
-	    printf("%u\n", m_counter);
+	  if(m_counter - p_counter > 1000){
+	    printf("%u::%u  @%lu\n", rxData[0], rxData[1], m_counter);
 	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     	p_counter = m_counter;
+//    	rxData[0] = 0, rxData[1] = 0;
 	  }
 	  else{}
 
   }
-//whileここまで！！！！！！！！！！！！！
+//whileここまで?�?�?�?�?�?�?�?�?�?�?�?�?�?
 
   /* USER CODE END 3 */
 }
@@ -241,7 +238,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 15;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -347,7 +344,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void adjindex(int* index, uint8_t* buf){//読み込み位置を補正した�?。�?��?��?�サイズの測り方が�?�てな
+	if(*index < 0){
+		*index = *index + sizeof(buf);
+	}else if(*index > sizeof(buf)-1){
+		*index = *index - sizeof(buf);
+	}else{}
+}
 /* USER CODE END 4 */
 
 /**

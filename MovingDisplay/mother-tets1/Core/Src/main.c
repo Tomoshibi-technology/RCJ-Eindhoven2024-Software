@@ -61,6 +61,7 @@ static void MX_USART6_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//extern void initialise_monitor_handles(void);//printfの初期化�?�プロトタイプ宣�?
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -87,7 +88,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+//  initialise_monitor_handles();//printf初期�?
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -111,7 +112,8 @@ int main(void)
     uint32_t p_counter;
     p_counter = m_counter;
 
-    uint8_t send = 85;
+    uint8_t send_array[12] = {250, 85, 120, 251, 30, 50, 252, 45, 180, 253, 166, 98};
+    uint8_t noise_array[11] = {251, 160, 178, 154, 230, 20, 35, 45, 11, 13, 100};
   while (1)
   {
     /* USER CODE END WHILE */
@@ -119,11 +121,11 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  if(m_counter - p_counter > 100){
-//	    printf("%ld\n", totalAng);
-//	    printf("%ld\n", m_counter);
+		p_counter = m_counter;
+//	    printf("{%u, %u, %u}  @%lu\n", send_array[0], send_array[1], send_array[2], m_counter);
 	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  	HAL_UART_Transmit(&huart6, &send, 1, 10);
-    	p_counter = m_counter;
+	  	HAL_UART_Transmit(&huart6, send_array, 12, 10);
+	  	HAL_UART_Transmit(&huart6, noise_array, 11, 10);
 	  }
 	  else{}
   }
