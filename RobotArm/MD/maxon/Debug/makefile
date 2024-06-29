@@ -75,8 +75,8 @@ all: main-build
 main-build: maxon.elf secondary-outputs
 
 # Tool invocations
-maxon.elf maxon.map: $(OBJS) $(USER_OBJS) C:\Users\tomoh\STM32CubeIDE\workspace_1.12.1\maxon\STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "maxon.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\Users\tomoh\STM32CubeIDE\workspace_1.12.1\maxon\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="maxon.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+maxon.elf maxon.map: $(OBJS) $(USER_OBJS) C:\github\RCJ-Eindhoven2024-Software\RobotArm\MD\maxon\STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "maxon.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\github\RCJ-Eindhoven2024-Software\RobotArm\MD\maxon\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="maxon.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
