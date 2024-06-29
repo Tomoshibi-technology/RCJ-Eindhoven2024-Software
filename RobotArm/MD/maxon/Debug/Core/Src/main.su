@@ -1,0 +1,5 @@
+../Core/Src/main.cpp:86:5:int main()	32	static
+../Core/Src/main.cpp:162:6:void SystemClock_Config()	88	static
+../Core/Src/main.cpp:208:13:void MX_TIM16_Init()	88	static
+../Core/Src/main.cpp:271:13:void MX_GPIO_Init()	48	static
+../Core/Src/main.cpp:309:6:void Error_Handler()	8	static,ignoring_inline_asm

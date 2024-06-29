@@ -1,4 +1,0 @@
-../Core/Src/STS.cpp:3:1:STS::STS(UART_HandleTypeDef*, uint8_t)	24	static
-../Core/Src/STS.cpp:9:6:void STS::move(int16_t, int16_t, int16_t)	48	static
-../Core/Src/STS.cpp:37:6:void STS::send()	32	static
-../Core/Src/STS.cpp:53:9:int16_t STS::calculate_position(int16_t)	16	static
