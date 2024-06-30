@@ -20,6 +20,15 @@
 #include "main.h"
 #include "math.h"
 
+
+
+
+
+
+
+
+
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "maxon.h"

@@ -419,14 +419,14 @@ int main(void)
  800055a:	b29a      	uxth	r2, r3
  800055c:	4b09      	ldr	r3, [pc, #36]	; (8000584 <main+0x7c>)
  800055e:	801a      	strh	r2, [r3, #0]
-		  sendData(degree, 100);
+		  sendData(degree, 255);
  8000560:	4b08      	ldr	r3, [pc, #32]	; (8000584 <main+0x7c>)
  8000562:	881b      	ldrh	r3, [r3, #0]
- 8000564:	2164      	movs	r1, #100	; 0x64
+ 8000564:	21ff      	movs	r1, #255	; 0xff
  8000566:	4618      	mov	r0, r3
  8000568:	f000 f8e4 	bl	8000734 <_Z8sendDatath>
-		  HAL_Delay(20);
- 800056c:	2014      	movs	r0, #20
+		  HAL_Delay(5);
+ 800056c:	2005      	movs	r0, #5
  800056e:	f000 fa8d 	bl	8000a8c <HAL_Delay>
  8000572:	e7d3      	b.n	800051c <main+0x14>
 	  }else{

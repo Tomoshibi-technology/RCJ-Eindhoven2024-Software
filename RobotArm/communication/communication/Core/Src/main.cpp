@@ -123,8 +123,8 @@ int main(void)
 	  if(HAL_GPIO_ReadPin(slide_GPIO_Port, slide_Pin) == 1){
 		  degree++;
 		  degree %= 360;
-		  sendData(degree, 100);
-		  HAL_Delay(20);
+		  sendData(degree, 255);
+		  HAL_Delay(5);
 	  }else{
 		  sendData(0, 0);
 	  }
