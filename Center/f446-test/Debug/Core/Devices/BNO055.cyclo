@@ -1,0 +1,6 @@
+../Core/Devices/BNO055.cpp:11:1:BNO055::BNO055(I2C_HandleTypeDef, uint8_t)	1
+../Core/Devices/BNO055.cpp:19:6:void BNO055::init()	1
+../Core/Devices/BNO055.cpp:29:12:QUATERNION BNO055::get_quaternion()	1
+../Core/Devices/BNO055.cpp:45:7:EULAR BNO055::get_eular()	2
+../Core/Devices/BNO055.cpp:69:7:EULAR BNO055::get_accel()	1
+../Core/Devices/BNO055.cpp:85:7:EULAR BNO055::get_gyro()	1
