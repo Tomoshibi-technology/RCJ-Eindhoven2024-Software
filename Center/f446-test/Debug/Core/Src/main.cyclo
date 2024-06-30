@@ -1,7 +1,5 @@
-../Core/Src/main.cpp:67:19:HAL_StatusTypeDef BNO055_Write(uint8_t, uint8_t, uint8_t*, uint16_t)	1
-../Core/Src/main.cpp:71:19:HAL_StatusTypeDef BNO055_Read(uint8_t, uint8_t, uint8_t*, uint16_t)	1
-../Core/Src/main.cpp:86:5:int main()	1
-../Core/Src/main.cpp:163:6:void SystemClock_Config()	3
-../Core/Src/main.cpp:205:13:void MX_I2C1_Init()	2
-../Core/Src/main.cpp:239:13:void MX_GPIO_Init()	1
-../Core/Src/main.cpp:295:6:void Error_Handler()	1
+../Core/Src/main.cpp:73:5:int main()	2
+../Core/Src/main.cpp:143:6:void SystemClock_Config()	3
+../Core/Src/main.cpp:185:13:void MX_I2C1_Init()	2
+../Core/Src/main.cpp:219:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:274:6:void Error_Handler()	1

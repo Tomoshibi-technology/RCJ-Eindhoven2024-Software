@@ -19,7 +19,8 @@ bool BNO055::begin() {
     }
     HAL_Delay(30);
 
-    uint8_t ndofMode = 0x0C; // NDOF mode
+    uint8_t ndofMode = 0x0C;
+//    uint8_t imuMode = 0x08;
     if (write(0x3D, &ndofMode, 1) != HAL_OK) {
         return false;
     }

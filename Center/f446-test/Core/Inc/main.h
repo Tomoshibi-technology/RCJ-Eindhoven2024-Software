@@ -59,14 +59,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_R_Pin GPIO_PIN_5
 #define LED_R_GPIO_Port GPIOA
+#define LED_L_Pin GPIO_PIN_2
+#define LED_L_GPIO_Port GPIOB
 #define TACT_C_Pin GPIO_PIN_12
 #define TACT_C_GPIO_Port GPIOB
 #define TACT_L_Pin GPIO_PIN_14
 #define TACT_L_GPIO_Port GPIOB
 #define TACT_R_Pin GPIO_PIN_8
 #define TACT_R_GPIO_Port GPIOC
-#define LED_L_Pin GPIO_PIN_2
-#define LED_L_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 

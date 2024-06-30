@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "BNO055.h"
 
 /* USER CODE END Includes */
 
@@ -33,10 +33,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BNO055_I2C_ADDR 0x28 // デフォルトI2Cアドレス
-// レジスタアドレス
-#define BNO055_OPR_MODE 0x3D
-#define BNO055_EULER_H_LSB 0x1A
 
 /* USER CODE END PD */
 
@@ -62,14 +58,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-
-HAL_StatusTypeDef BNO055_Write(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t size) {
-    return HAL_I2C_Mem_Write(&hi2c1, devAddr << 1, regAddr, I2C_MEMADD_SIZE_8BIT, data, size, HAL_MAX_DELAY);
-}
-
-HAL_StatusTypeDef BNO055_Read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t size) {
-    return HAL_I2C_Mem_Read(&hi2c1, devAddr << 1, regAddr, I2C_MEMADD_SIZE_8BIT, data, size, HAL_MAX_DELAY);
-}
 
 /* USER CODE END PFP */
 
@@ -110,44 +98,37 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+  BNO055 bno055(&hi2c1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  unsigned char address = 0x28;
-//  BNO055 bno055(hi2c1,address);
-//  QUATERNION q;
-//  EULAR e;
 
-  uint8_t configMode = 0x00; // CONFIGMODE
-  status = BNO055_Write(BNO055_I2C_ADDR, BNO055_OPR_MODE, &configMode, 1);
-  HAL_Delay(30);
+  HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 
-  uint8_t ndofMode = 0x0C; // NDOF mode
-  status = BNO055_Write(BNO055_I2C_ADDR, BNO055_OPR_MODE, &ndofMode, 1);
-  HAL_Delay(30);
+  if (!bno055.begin()) {
+	  // センサ初期化失敗時の処理
+	  while (1);
+  }
+  HAL_Delay(1000);
+  HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET);
+
+  float heading, roll, pitch;
+  HAL_GPIO_WritePin(LED_L_GPIO_Port, LED_L_Pin, GPIO_PIN_SET);
 
   while (1)
   {
-	  uint8_t eulerData[6];
-	  status = BNO055_Read(BNO055_I2C_ADDR, BNO055_EULER_H_LSB, eulerData, 6);
+	HAL_GPIO_TogglePin(LED_L_GPIO_Port, LED_L_Pin);
 
-	  int16_t heading = ((int16_t)eulerData[1] << 8) | eulerData[0];
-	  int16_t roll = ((int16_t)eulerData[3] << 8) | eulerData[2];
-	  int16_t pitch = ((int16_t)eulerData[5] << 8) | eulerData[4];
+	bno055.getEulerAngles(heading, roll, pitch);
+//	printf("Heading: %.2f, Roll: %.2f, Pitch: %.2f\n", heading, roll, pitch);
+	a = heading;
+	b = roll;
+	c = pitch;
 
-	  float headingDeg = heading / 16.0;
-	  float rollDeg = roll / 16.0;
-	  float pitchDeg = pitch / 16.0;
+	HAL_Delay(100);
 
-	  a = headingDeg;
-	  b = rollDeg;
-	  c = pitchDeg;
-
-	  // オイラー角の表示や使用
-//	  printf("Heading: %.2f, Roll: %.2f, Pitch: %.2f\n", headingDeg, rollDeg, pitchDeg);
-
-	  HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -245,7 +226,6 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET);
@@ -260,6 +240,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_R_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : LED_L_Pin */
+  GPIO_InitStruct.Pin = LED_L_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_L_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : TACT_C_Pin TACT_L_Pin */
   GPIO_InitStruct.Pin = TACT_C_Pin|TACT_L_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -271,13 +258,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(TACT_R_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : LED_L_Pin */
-  GPIO_InitStruct.Pin = LED_L_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_L_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
