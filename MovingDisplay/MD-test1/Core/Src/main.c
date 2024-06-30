@@ -60,9 +60,11 @@ uint8_t rxBufB[128]={};
 uint8_t rxDataB[2]={0,0};
 uint8_t ID = 0;//自身のID
 
-int goalSpeed= 0;//目標�??��
-int nowSpeed = 0;//現在速度
+uint16_t goalSpeed= 0;//目標�??��
+uint16_t nowSpeed = 0;//現在速度
 int duty = 640;
+
+uint16_t dtime;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,11 +133,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t Ltika_pcounter;
-  Ltika_pcounter = u10_counter;
+  uint32_t Ltika_pcounter = u10_counter;
 
-  uint32_t duty_pcounter;
-  duty_pcounter = u10_counter;
+  uint32_t duty_pcounter = u10_counter;
+
+  uint32_t d_pcounter = u10_counter;
 
   HAL_UART_Receive_DMA(&huart1,rxBufA,sizeof(rxBufA));
   HAL_UART_Receive_DMA(&huart2,rxBufB,sizeof(rxBufB));
@@ -148,6 +150,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  dtime = u10_counter - d_pcounter;
+	  d_pcounter = d_pcounter + dtime;
+
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, ID, 8);
 	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, 25);
 
@@ -155,7 +160,7 @@ int main(void)
 
 	  //nowSpeed取�?
 //	  nowSpeed = duty*10000/1280;
-	  nowlSpeed = rxDataB[0] + rxDataB[1]*100;
+	  nowSpeed = rxDataA[0] + rxDataA[1]*100;
 
 	  if(goalSpeed < nowSpeed){
 		  if((u10_counter - duty_pcounter) > 50){
@@ -183,6 +188,8 @@ int main(void)
 //		  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 0);
 		  __HAL_TIM_SET_COMPARE(&htim16, TIM_CHANNEL_1, duty);
 	  }
+
+
 
 	  if(u10_counter - Ltika_pcounter > 100000){
 	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);

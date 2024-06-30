@@ -44,77 +44,51 @@
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
-DMA_HandleTypeDef hdma_i2c1_rx;
-DMA_HandleTypeDef hdma_i2c1_tx;
 
 TIM_HandleTypeDef htim3;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
-  uint16_t AS5600_ADDR = 0x36 << 1;
-  uint8_t ANGLE_ADDR = 0x0E;
-  uint8_t rxBuf[128] = {};
+  uint8_t rxBuf[2] = {};
+  uint8_t speed_array[3] = {};
 
   long totalAng = 0;
   long ptotalAng = 0;
   uint16_t Angle;
   uint16_t pAngle;
+  int16_t dAngle;
 
-  int counter = 0;
-  int txFact = 0;
-  int rxFact = 0;
+  volatile uint32_t counter;
+  uint64_t u_counter;
+  uint16_t dtime;
 
-  HAL_StatusTypeDef TxRet;
-  HAL_StatusTypeDef RxRet;
-
-  volatile uint32_t m_counter;
+  int16_t speed;
+  int16_t pspeed = 0;
+  int16_t send_speed = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c){
-	if(hi2c == &hi2c1){
-			counter++;
-		}
-}
-
-void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c){
-
-	if(hi2c == &hi2c1){
-		Angle = rxBuf[0]*256 + rxBuf[1];
-
-		if(Angle-pAngle>0 && abs(Angle-pAngle)<4000){
-			totalAng = ptotalAng + (Angle-pAngle);
-		}else if(Angle-pAngle<0 && abs(Angle-pAngle)<4000){
-			totalAng = ptotalAng + (Angle-pAngle);
-		}else if(Angle-pAngle>0 && abs(Angle-pAngle)>4000){
-			totalAng = ptotalAng - ((4095-Angle)+pAngle);
-		}else if(Angle-pAngle<0 && abs(Angle-pAngle)>4000){
-			totalAng = ptotalAng + Angle + (4095-pAngle);
-		}else{
-			totalAng = ptotalAng;
-		}
-
-		ptotalAng = totalAng;
-		pAngle = Angle;
-
-		counter++;
-	}
+uint64_t readCounter()
+{
+  return (counter*65535) + TIM3->CNT;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim == &htim3){
-        m_counter++;
+        counter++;
     }
 }
 
@@ -128,7 +102,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	uint8_t ID = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -149,52 +123,71 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM3_Init();
   MX_I2C1_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
+
+  uint16_t AS5600_ADDR = 0x36 << 1;
+  uint8_t ANGLE_ADDR = 0x0E;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  TxRet = HAL_I2C_Master_Transmit_DMA (&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1);
-  HAL_Delay(100);
+  HAL_I2C_Master_Transmit(&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1, 10);
+  HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBuf, 2, 10);
 
-  RxRet = HAL_I2C_Master_Receive_DMA (&hi2c1, AS5600_ADDR, rxBuf, 2);
-
+  uint32_t d_pcounter, Ltika_pcounter;
+  d_pcounter = Ltika_pcounter = readCounter();
 
   pAngle = rxBuf[0]*256 + rxBuf[1];
   ptotalAng = pAngle;
 
-  uint32_t p_counter;
-  p_counter = m_counter;
-
   while (1)
   {
+	u_counter = readCounter();
+
+	HAL_I2C_Master_Transmit(&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1, 10);
+	HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBuf, 2, 10);
+
+	dtime = readCounter() - d_pcounter;
+	d_pcounter = d_pcounter + dtime;
+
+	Angle = rxBuf[0]*256 + rxBuf[1];
+
+	if(Angle-pAngle>0 && abs(Angle-pAngle)<3000){
+		totalAng = ptotalAng + (Angle-pAngle);
+	}else if(Angle-pAngle<0 && abs(Angle-pAngle)<3000){
+		totalAng = ptotalAng + (Angle-pAngle);
+	}else if(Angle-pAngle>0 && abs(Angle-pAngle)>3000){
+		totalAng = ptotalAng - ((4095-Angle)+pAngle);
+	}else if(Angle-pAngle<0 && abs(Angle-pAngle)>3000){
+		totalAng = ptotalAng + Angle + (4095-pAngle);
+	}else{
+		totalAng = ptotalAng;
+	}
+
+	dAngle = totalAng - ptotalAng;
+    speed = dAngle*78125/ dtime;
+    speed = (0.8*speed) + (0.2*pspeed);
+
+	ptotalAng = totalAng;
+	pAngle = Angle;
+    pspeed = speed;
+
+    send_speed = speed + 5000;
+    speed_array[0] = 250 + ID;
+	speed_array[1] = send_speed % 100;
+	speed_array[2] = send_speed / 100;
+
+    HAL_UART_Transmit(&huart2, speed_array, 3, 10);
 
 
-//	Angle = rcvBuf[0]*256 + rcvBuf[1];
-//
-//	if(Angle-pAngle>0 && abs(Angle-pAngle)<4000){
-//		totalAng = ptotalAng + (Angle-pAngle);
-//	}else if(Angle-pAngle<0 && abs(Angle-pAngle)<4000){
-//		totalAng = ptotalAng + (Angle-pAngle);
-//	}else if(Angle-pAngle>0 && abs(Angle-pAngle)>4000){
-//		totalAng = ptotalAng - ((4095-Angle)+pAngle);
-//	}else if(Angle-pAngle<0 && abs(Angle-pAngle)>4000){
-//		totalAng = ptotalAng + Angle + (4095-pAngle);
-//	}else{
-//		totalAng = ptotalAng;
-//	}
-//
-//	ptotalAng = totalAng;
-//	pAngle = Angle;
-
-	if(m_counter - p_counter > 1000){
+	if(readCounter() - Ltika_pcounter > 1000000){
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		p_counter = m_counter;
+		Ltika_pcounter = readCounter();
 	}
 	else{}
     /* USER CODE END WHILE */
@@ -218,7 +211,7 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV4;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -234,7 +227,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -256,7 +249,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x40000A0B;
+  hi2c1.Init.Timing = 0x20303E5D;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -307,9 +300,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 11;
+  htim3.Init.Prescaler = 47;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 999;
+  htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -334,21 +327,38 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
   */
-static void MX_DMA_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
+  /* USER CODE BEGIN USART2_Init 0 */
 
-  /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-  /* DMA1_Channel2_3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -365,6 +375,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
