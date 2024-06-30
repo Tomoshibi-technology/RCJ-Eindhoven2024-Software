@@ -1,6 +1,6 @@
-main.cpp:86:5:int main()	1
-main.cpp:141:6:void SystemClock_Config()	3
-main.cpp:183:13:void MX_USART3_UART_Init()	2
-main.cpp:216:13:void MX_GPIO_Init()	1
-main.cpp:230:6:void sendData(uint16_t, uint8_t)	2
-main.cpp:262:6:void Error_Handler()	1
+main.cpp:87:5:int main()	2
+main.cpp:149:6:void SystemClock_Config()	3
+main.cpp:191:13:void MX_USART3_UART_Init()	2
+main.cpp:224:13:void MX_GPIO_Init()	1
+main.cpp:245:6:void sendData(uint16_t, uint8_t)	2
+main.cpp:278:6:void Error_Handler()	1

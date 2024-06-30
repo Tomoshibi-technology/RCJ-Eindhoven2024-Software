@@ -129,7 +129,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(HAL_GPIO_ReadPin (slideSW_GPIO_Port, slideSW_Pin) == 1){
+	  if(HAL_GPIO_ReadPin (slideSW_GPIO_Port, slideSW_Pin) == 0){
 		  if(value < 290){
 			  value++;
 			  HAL_Delay(1);

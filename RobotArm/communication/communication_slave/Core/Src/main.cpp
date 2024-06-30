@@ -292,7 +292,8 @@ void receiveData(){
   {
     checksum += read[i];
   }
-  checksum = ~checksum;
+  checksum += 10;
+  checksum %= 256;
 
   if (read[5] == checksum)
   {

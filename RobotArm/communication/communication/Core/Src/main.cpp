@@ -44,6 +44,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 uint8_t sendArray[6] = {255, 255, 0, 0, 0, 0};
+uint16_t degree = 0;
 
 
 
@@ -119,7 +120,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  sendData(0, 0);
+	  if(HAL_GPIO_ReadPin(slide_GPIO_Port, slide_Pin) == 1){
+		  degree++;
+		  degree %= 360;
+		  sendData(degree, 100);
+		  HAL_Delay(20);
+	  }else{
+		  sendData(0, 0);
+	  }
 
 
 
@@ -215,12 +223,19 @@ static void MX_USART3_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin : slide_Pin */
+  GPIO_InitStruct.Pin = slide_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(slide_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -238,7 +253,8 @@ void sendData(uint16_t angle, uint8_t speed){
 	  {
 	    checksum += sendArray[i];
 	  }
-	  checksum = ~checksum;
+	  checksum += 10;
+	  checksum %= 256;
 	  sendArray[5] = checksum;
 	  HAL_UART_Transmit(&huart3, sendArray, 6, 100);
 	  HAL_Delay(1);
