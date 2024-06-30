@@ -48,6 +48,8 @@ UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
 volatile uint32_t m_counter;
+int goalSpeed = 0;
+uint8_t send_array[12] = {250, 0, 0, 251, 30, 50, 252, 45, 180, 253, 166, 98};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,7 +63,6 @@ static void MX_USART6_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//extern void initialise_monitor_handles(void);//printfの初期化�?�プロトタイプ宣�?
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -88,7 +89,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-//  initialise_monitor_handles();//printf初期�?
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -109,25 +110,36 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-    uint32_t p_counter;
-    p_counter = m_counter;
+    uint32_t Ltika_pcounter;
+    Ltika_pcounter = m_counter;
 
-    uint8_t send_array[12] = {250, 85, 120, 251, 30, 50, 252, 45, 180, 253, 166, 98};
+    uint32_t speed_pcounter;
+    speed_pcounter = m_counter;
+
     uint8_t noise_array[11] = {251, 160, 178, 154, 230, 20, 35, 45, 11, 13, 100};
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  if((m_counter - speed_pcounter) > 10){
+		  goalSpeed = goalSpeed + 20;
+		  if(goalSpeed > 10000){goalSpeed = 0;}
+		  else if(goalSpeed < 0){goalSpeed = 10000;}
+		  else{}
+		  speed_pcounter = m_counter;
+	  }else{}
 
-	  if(m_counter - p_counter > 100){
-		p_counter = m_counter;
-//	    printf("{%u, %u, %u}  @%lu\n", send_array[0], send_array[1], send_array[2], m_counter);
+	  if(m_counter - Ltika_pcounter > 50){
+		Ltika_pcounter = m_counter;
+
+		send_array[1] = goalSpeed % 100;
+		send_array[2] = goalSpeed / 100;
+
 	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  	HAL_UART_Transmit(&huart6, send_array, 12, 10);
 	  	HAL_UART_Transmit(&huart6, noise_array, 11, 10);
-	  }
-	  else{}
+	  }else{}
   }
   /* USER CODE END 3 */
 }

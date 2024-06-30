@@ -43,12 +43,26 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim16;
 
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-volatile uint32_t m_counter;//タイマ�?�のカウンタ�?1msで1増え�?
+volatile uint32_t u10_counter;
+
+uint8_t rxBufA[64]={};
+uint8_t rxDataA[2]={0,0};
+
+uint8_t rxBufB[128]={};
+uint8_t rxDataB[2]={0,0};
+uint8_t ID = 0;//自身のID
+
+int goalSpeed= 0;//目標�??��
+int nowSpeed = 0;//現在速度
+int duty = 640;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,18 +71,19 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM16_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void adjindex(int* index, uint8_t* buf);//バッファの読み込み位置補正
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, int id, int go_back);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern void initialise_monitor_handles(void);//printfの初期化�?�プロトタイプ宣�?
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//タイマ�?�割り込みの�?容�?1msであ�?�れて1増や�?
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim == &htim3){
-        m_counter++;
+        u10_counter++;
     }
 }
 /* USER CODE END 0 */
@@ -90,7 +105,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  initialise_monitor_handles();//printf初期�?
 
   /* USER CODE END Init */
 
@@ -106,73 +120,76 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_TIM16_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim3);//タイマ�?�開�?
+  HAL_TIM_Base_Start_IT(&htim3);
+
+  HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim16, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//タイマ�?�カウンターの初期条件をと�?
-  uint32_t p_counter;
-  p_counter = m_counter;
+  uint32_t Ltika_pcounter;
+  Ltika_pcounter = u10_counter;
 
-//DMA関係�?�配�?�と変数を宣�?
-  uint8_t rxBuf[128]={};//レシーブバ�?ファの用意�?�とりあえず0入れとくべきか�?
-  uint8_t rxData[2]={0,0};//�?ータを�?�納する�?��??
-  uint8_t readData;//�?ータ探索用の�?時的なハコ
-  uint8_t ID = 0;//自身のID
-  int index;//バッファの書き�?�し位置
-  int indexRead;//読み込み位置、�?�期値は0に設�?
+  uint32_t duty_pcounter;
+  duty_pcounter = u10_counter;
 
+  HAL_UART_Receive_DMA(&huart1,rxBufA,sizeof(rxBufA));
+  HAL_UART_Receive_DMA(&huart2,rxBufB,sizeof(rxBufB));
 
-  HAL_UART_Receive_DMA(&huart2,rxBuf,sizeof(rxBuf));//DMAスター�?
+  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 1);
+  __HAL_TIM_SET_COMPARE(&htim16, TIM_CHANNEL_1, duty);
 
-
-//whileここから?�?�?�?�?�?�?�?�?�?�?�?�?�?
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, ID, 8);
+	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, 25);
 
-	index = huart2.hdmarx->Instance->CNDTR;//バッファー残容�?
-	index = sizeof(rxBuf) - index;//�?新の受信�?ータ位置
-	indexRead = index - 25;//読み込み位置の設�?
-//	adjindex(&indexRead, rxBuf);//読み込み位置補正
-	if(indexRead < 0){indexRead = indexRead + sizeof(rxBuf);}
+	  goalSpeed = rxDataB[0] + rxDataB[1]*100;
 
-	while(1){
-		readData = rxBuf[indexRead];//ID識別用の�?時的な変数
-		if(readData == 250+ID){//自�?のIDにたどりつ�?たと�?
-			for(int i=1; i<3; i++){//rxDataに格�?
-				int readPoint = indexRead + i;
-//				adjindex(&readPoint, rxBuf);
-				if(readPoint>sizeof(rxBuf)-1){readPoint = readPoint - sizeof(rxBuf);}
-				rxData[i-1] = rxBuf[readPoint];
-			}
-			break;
-		}
-		indexRead++;//�?個�?�める
-//		adjindex(&indexRead, rxBuf);//補正
-		if(indexRead>sizeof(rxBuf)-1){indexRead = indexRead - sizeof(rxBuf);}
-		if(indexRead == index){break;}//�?新位置まで読んでIDがなかったらブレイク
-	}
+	  //nowSpeed取�?
+//	  nowSpeed = duty*10000/1280;
+	  nowlSpeed = rxDataB[0] + rxDataB[1]*100;
 
-//	printf("%u::%u\n%lu\n", rxData[0], rxData[1], m_counter);
-
-//ここから先�?��?0.1秒ごとにprintfしてLEDをトグルするプログラ�?
-//普通にHAL_TIM_PeriodElapsedCallbackの中でど�?にかするべき�?�ような気もするけど�?ったん無�?
-
-	  if(m_counter - p_counter > 1000){
-	    printf("%u::%u  @%lu\n", rxData[0], rxData[1], m_counter);
-	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    	p_counter = m_counter;
-//    	rxData[0] = 0, rxData[1] = 0;
+	  if(goalSpeed < nowSpeed){
+		  if((u10_counter - duty_pcounter) > 50){
+			  duty--;
+			  duty_pcounter = u10_counter;
+		  }
+	  }else if(goalSpeed > nowSpeed){
+		  if((u10_counter - duty_pcounter) > 50){
+			  duty++;
+			  duty_pcounter = u10_counter;
+		  }
+	  }else{
+		  duty = duty;
 	  }
-	  else{}
+
+	  if(duty > 1260){duty = 1260;}//duty制?��?
+	  else if(duty < 20){duty = 20;}
+	  else{duty = duty;}
+
+	  if(HAL_GPIO_ReadPin(SLSW_GPIO_Port, SLSW_Pin) == 1){//スタートスイ?��?チ読み込み
+		  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 1);//シャ?��?トダウン解除
+		  __HAL_TIM_SET_COMPARE(&htim16, TIM_CHANNEL_1, duty);//duty代入
+	  }else{
+		  duty = 640;//速度0に設?��?
+//		  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 0);
+		  __HAL_TIM_SET_COMPARE(&htim16, TIM_CHANNEL_1, duty);
+	  }
+
+	  if(u10_counter - Ltika_pcounter > 100000){
+	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    	Ltika_pcounter = u10_counter;
+	  }else{}
 
   }
-//whileここまで?�?�?�?�?�?�?�?�?�?�?�?�?�?
 
   /* USER CODE END 3 */
 }
@@ -193,11 +210,14 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 8;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -207,11 +227,11 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -236,9 +256,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 15;
+  htim3.Init.Prescaler = 63;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 999;
+  htim3.Init.Period = 9;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -259,6 +279,117 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 0;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 1280-1;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim16, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim16, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+
+  /* USER CODE END TIM16_Init 2 */
+  HAL_TIM_MspPostInit(&htim16);
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
 
 }
 
@@ -311,6 +442,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
 }
 
@@ -326,11 +460,28 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : SLSW_Pin */
+  GPIO_InitStruct.Pin = SLSW_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SLSW_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SHDN_Pin */
+  GPIO_InitStruct.Pin = SHDN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SHDN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
@@ -344,12 +495,27 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void adjindex(int* index, uint8_t* buf){//読み込み位置を補正した�?。�?��?��?�サイズの測り方が�?�てな
-	if(*index < 0){
-		*index = *index + sizeof(buf);
-	}else if(*index > sizeof(buf)-1){
-		*index = *index - sizeof(buf);
-	}else{}
+
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, int id, int go_back){
+	int index = uart->hdmarx->Instance->CNDTR;
+	index = buf_size - index;
+	int indexRead = index - go_back;
+	if(indexRead < 0){indexRead = indexRead + buf_size;}
+
+	while(1){
+		uint8_t readData = buf[indexRead];
+		if(readData == 250+id){
+			for(int i=1; i<=data_size; i++){
+				int readPoint = indexRead + i;
+				if(readPoint>buf_size-1){readPoint = readPoint - buf_size;}
+				data[i-1] = buf[readPoint];
+			}
+			break;
+		}
+		indexRead++;
+		if(indexRead>buf_size-1){indexRead = indexRead - buf_size;}
+		if(indexRead == index){break;}
+	}
 }
 /* USER CODE END 4 */
 
