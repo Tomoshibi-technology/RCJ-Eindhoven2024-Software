@@ -1,4 +1,7 @@
 "./Core/Devices/BNO055.o"
+"./Core/Devices/SSD1306.o"
+"./Core/Devices/fonts.o"
+"./Core/Devices/lib/ftoa.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"

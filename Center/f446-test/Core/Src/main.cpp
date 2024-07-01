@@ -23,6 +23,12 @@
 /* USER CODE BEGIN Includes */
 #include "BNO055.h"
 
+#include "SSD1306.h"
+#include "fonts.h"
+#include <stdio.h>
+
+#include "lib/ftoa.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,6 +110,19 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	ssd1306_Init(&hi2c1);
+	HAL_Delay(1000);
+	ssd1306_Fill(Black);
+	ssd1306_UpdateScreen(&hi2c1);
+
+	HAL_Delay(1000);
+	ssd1306_SetCursor(7,13);
+	ssd1306_WriteString("Tomoshibi",Font_11x18,White);
+	ssd1306_SetCursor(12,33);
+	ssd1306_WriteString("Technology",Font_11x18,Black);
+
+	ssd1306_UpdateScreen(&hi2c1);
+
 
   HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 
@@ -117,6 +136,8 @@ int main(void)
   float heading, roll, pitch;
   HAL_GPIO_WritePin(LED_L_GPIO_Port, LED_L_Pin, GPIO_PIN_SET);
 
+
+  char buf[32];
   while (1)
   {
 	HAL_GPIO_TogglePin(LED_L_GPIO_Port, LED_L_Pin);
@@ -126,6 +147,25 @@ int main(void)
 	a = heading;
 	b = roll;
 	c = pitch;
+
+	// OLEDディスプレイにオイラー角を表示
+	ssd1306_Fill(Black);
+//	snprintf(buf, sizeof(buf), "Heading: %.2f", heading);
+	ftoa(heading, buf, 5);
+	ssd1306_SetCursor(0, 0);
+	ssd1306_WriteString(buf, Font_7x10, White);
+
+//	snprintf(buf, sizeof(buf), "Roll: %.2f", roll);
+	ftoa(roll, buf, 5);
+	ssd1306_SetCursor(0, 20);
+	ssd1306_WriteString(buf, Font_7x10, White);
+
+//	snprintf(buf, sizeof(buf), "Pitch: %.2f", pitch);
+	ftoa(pitch, buf, 5);
+	ssd1306_SetCursor(0, 40);
+	ssd1306_WriteString(buf, Font_7x10, White);
+
+	ssd1306_UpdateScreen(&hi2c1);
 
 	HAL_Delay(100);
 

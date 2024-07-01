@@ -1,0 +1,5 @@
+../Core/Devices/lib/ftoa.c:10:6:reverse	32	static
+../Core/Devices/lib/ftoa.c:21:5:intToStr	32	static
+../Core/Devices/lib/ftoa.c:37:5:myAbs	16	static
+../Core/Devices/lib/ftoa.c:41:8:myPow	40	static
+../Core/Devices/lib/ftoa.c:53:6:ftoa	48	static
