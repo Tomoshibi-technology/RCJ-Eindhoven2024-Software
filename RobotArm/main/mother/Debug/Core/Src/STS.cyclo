@@ -1,5 +1,7 @@
-STS.cpp:3:1:STS::STS(UART_HandleTypeDef*, uint8_t)	1
-STS.cpp:9:6:void STS::moveCont(int16_t, int16_t, int16_t)	7
-STS.cpp:37:6:void STS::moveStop(int16_t, int16_t)	2
-STS.cpp:58:6:void STS::send()	2
-STS.cpp:74:9:int16_t STS::calculate_position(int16_t)	3
+STS.cpp:4:1:STS::STS(UART_HandleTypeDef*, uint8_t)	1
+STS.cpp:10:6:void STS::moveCont(uint16_t, int16_t, int16_t)	10
+STS.cpp:56:6:void STS::moveStop1(int16_t, int16_t)	2
+STS.cpp:79:6:void STS::moveStop3(int16_t, int16_t)	2
+STS.cpp:100:6:void STS::send()	2
+STS.cpp:116:9:int16_t STS::calculate_position(int16_t)	3
+cmath:475:5:constexpr typename __gnu_cxx::__enable_if<std::__is_integer<_Tp>::__value, double>::__type std::sqrt(_Tp) [with _Tp = int]	1

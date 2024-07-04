@@ -70,17 +70,22 @@ STS servo0(&huart2, 0);
 STS servo1(&huart2, 1);
 STS servo2(&huart2, 2);
 STS servo3(&huart2, 3);
-static int16_t pos0 = 0;
-static int16_t pos1 = 0;
-static int16_t pos2 = 0;
-static int16_t pos3 = 0;
-static uint8_t rxBuf[128];
+int16_t pos0 = 0;
+int16_t pos1 = 0;
+int16_t pos2 = 0;
+int16_t pos3 = 0;
+uint8_t rxBuf[128];
 
 uint8_t sendArray[6] = {255, 255, 0, 0, 0, 0};
 uint16_t degree = 0;
 
 uint8_t ready = 0 ;
 float rotate;
+
+uint8_t servoFlag = 0;
+
+uint32_t n = 0;
+uint32_t m = 0;
 
 
 
@@ -103,8 +108,6 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void get_position(uint8_t ID);
-
-
 void sendData(uint16_t angle, uint8_t speed);
 
 
@@ -121,9 +124,10 @@ void sendData(uint16_t angle, uint8_t speed);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
-	   NeopixelTape.execute();
+	if(htim == &htim3){
+		NeopixelTape.execute();
+	}
 }
-
 
 
 
@@ -192,6 +196,7 @@ int main(void)
 
 
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -217,7 +222,20 @@ int main(void)
 	    e = bno055.get_eular();
 	    rotate = (e.z/3.1415)*180;
 	    rotate = (int)rotate;
-
+		  get_position(0);
+		  get_position(2);
+	  if(HAL_GPIO_ReadPin(slidesw_GPIO_Port, slidesw_Pin) == 1){
+		  servo0.moveCont(3000, 6144, pos0);
+		  servo1.moveStop1(1000, 3000);
+		  servo2.moveCont(3000, 6144, pos2);
+		  servo3.moveStop3(1000, 3000);
+	  }else{
+		  servo0.moveCont(3000, 0, pos0);
+		  servo1.moveStop1(1000, 1000);
+		  servo2.moveCont(3000, 0, pos2);
+		  servo3.moveStop3(1000, 2000);
+	  }
+	  m++;
 
 
 
@@ -528,6 +546,7 @@ void get_position(uint8_t ID)
     break;
   }
 
+  HAL_Delay(1);
 
   index = huart2.hdmarx->Instance->NDTR;
   index = sizeof(rxBuf) - index;

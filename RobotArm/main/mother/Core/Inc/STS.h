@@ -11,8 +11,9 @@ class STS
 public:
     STS(UART_HandleTypeDef *uart, uint8_t ID);
 
-    void moveCont(int16_t speed, int16_t goal_position, int16_t now_position);
-    void moveStop(int16_t speed, int16_t goal_position);
+    void moveCont(uint16_t speed, int16_t goal_position, int16_t now_position);
+    void moveStop1(int16_t speed, int16_t goal_position);
+    void moveStop3(int16_t speed, int16_t goal_position);
     void send();
     int16_t calculate_position(int16_t now_position);
 

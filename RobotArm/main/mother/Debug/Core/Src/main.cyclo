@@ -1,14 +1,14 @@
-main.cpp:123:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	1
-main.cpp:142:5:int main()	3
-main.cpp:238:6:void SystemClock_Config()	3
-main.cpp:285:13:void MX_I2C1_Init()	2
-main.cpp:319:13:void MX_TIM3_Init()	6
-main.cpp:378:13:void MX_USART2_UART_Init()	2
-main.cpp:411:13:void MX_USART3_UART_Init()	2
-main.cpp:442:13:void MX_DMA_Init()	1
-main.cpp:463:13:void MX_GPIO_Init()	1
-main.cpp:502:6:void get_position(uint8_t)	20
-main.cpp:583:6:void sendData(uint16_t, uint8_t)	2
-main.cpp:616:6:void Error_Handler()	1
-main.cpp:625:1:void __static_initialization_and_destruction_0(int, int)	3
-main.cpp:625:1:cpp)	1
+main.cpp:126:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	2
+main.cpp:146:5:int main()	2
+main.cpp:256:6:void SystemClock_Config()	3
+main.cpp:303:13:void MX_I2C1_Init()	2
+main.cpp:337:13:void MX_TIM3_Init()	6
+main.cpp:396:13:void MX_USART2_UART_Init()	2
+main.cpp:429:13:void MX_USART3_UART_Init()	2
+main.cpp:460:13:void MX_DMA_Init()	1
+main.cpp:481:13:void MX_GPIO_Init()	1
+main.cpp:520:6:void get_position(uint8_t)	20
+main.cpp:602:6:void sendData(uint16_t, uint8_t)	2
+main.cpp:635:6:void Error_Handler()	1
+main.cpp:644:1:void __static_initialization_and_destruction_0(int, int)	3
+main.cpp:644:1:cpp)	1
