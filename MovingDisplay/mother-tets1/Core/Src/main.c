@@ -47,9 +47,12 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
-volatile uint32_t m_counter;
-int goalSpeed = 0;
-uint8_t send_array[12] = {250, 0, 0, 251, 30, 50, 252, 45, 180, 253, 166, 98};
+uint32_t m_counter;
+int16_t MTRS[4]={0, 0, 0, 0};
+uint8_t send_array[12] = {250, 0, 50, 251, 0, 50, 252, 0, 50, 253, 0, 50};
+
+int16_t speed;
+int16_t degree;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,7 +61,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void setgo(int speed, int degree);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -105,40 +108,71 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Transmit(&huart6, send_array, 12, 10);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+    uint32_t Ltika_pcounter = m_counter;
+    uint32_t tx_pcounter = m_counter;
 
-    uint32_t Ltika_pcounter;
-    Ltika_pcounter = m_counter;
-
-    uint32_t speed_pcounter;
-    speed_pcounter = m_counter;
-
-    uint8_t noise_array[11] = {251, 160, 178, 154, 230, 20, 35, 45, 11, 13, 100};
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if((m_counter - speed_pcounter) > 10){
-		  goalSpeed = goalSpeed + 20;
-		  if(goalSpeed > 10000){goalSpeed = 0;}
-		  else if(goalSpeed < 0){goalSpeed = 10000;}
-		  else{}
-		  speed_pcounter = m_counter;
-	  }else{}
 
-	  if(m_counter - Ltika_pcounter > 50){
-		Ltika_pcounter = m_counter;
 
-		send_array[1] = goalSpeed % 100;
-		send_array[2] = goalSpeed / 100;
 
+
+
+
+	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
+		  if(m_counter - tx_pcounter > 2){
+				tx_pcounter = m_counter;
+
+				for(int i=0; i<4; i++){
+					if(speed_array[i] >= 5500 || speed_array[i]<= 4500){katamuki_array[i] = -katamuki_array[i];}
+					speed_array[i] = speed_array[i] + katamuki_array[i];
+				}
+
+				for(int i=0; i<4; i++){
+					send_array[3*i] = 250+i;
+					send_array[3*i+1] = speed_array[i] % 100;
+					send_array[3*i+2] = speed_array[i] / 100;
+				}
+
+				HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		  }
+	  }else{
+		  if(m_counter - tx_pcounter > 5){
+				tx_pcounter = m_counter;
+
+				speed_array[0]=5000;
+				speed_array[1]=5500;
+				speed_array[2]=5000;
+				speed_array[3]=4500;
+
+
+				katamuki_array[0]=1;
+				katamuki_array[1]=1;
+				katamuki_array[2]=-1;
+				katamuki_array[3]=-1;
+
+				for(int i=0; i<4; i++){
+					send_array[3*i] = 250+i;
+					send_array[3*i+1] = 0;
+					send_array[3*i+2] = 50;
+				}
+
+				HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		  }
+	  }
+
+
+	  if(m_counter - Ltika_pcounter > 1000){
 	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  	HAL_UART_Transmit(&huart6, send_array, 12, 10);
-	  	HAL_UART_Transmit(&huart6, noise_array, 11, 10);
+	  	Ltika_pcounter = m_counter;
 	  }else{}
   }
   /* USER CODE END 3 */
@@ -279,21 +313,40 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_Pin|LED1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
+  /*Configure GPIO pins : LED_Pin LED1_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|LED1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : STRTSW_Pin */
+  GPIO_InitStruct.Pin = STRTSW_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(STRTSW_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+void speed_aset(int speed, int degree, int* mtrspeed){
+	if(degree > 180 || degree <= -180){
+		degree = degree % 360;
+		if(degree > 180){
+			degree = degree - 360;
+		}else if(degree <= -180){
+			degree = degree + 360;
+		}
+	}
 
+	for(int i=0; i<4; i++){
+		mtrspeed[i] = (sin((degree + (135.0 - i*90.0)) / 180.0*3.14)*speed);
+	}
+}
 /* USER CODE END 4 */
 
 /**

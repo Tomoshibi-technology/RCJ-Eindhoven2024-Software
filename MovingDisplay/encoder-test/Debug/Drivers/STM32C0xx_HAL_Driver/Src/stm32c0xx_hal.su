@@ -1,5 +1,5 @@
-../Drivers/STM32C0xx_HAL_Driver/Inc/stm32c0xx_ll_system.h:446:22:LL_SYSCFG_ConfigPinMux	16	static
-../Drivers/STM32C0xx_HAL_Driver/Inc/stm32c0xx_ll_system.h:457:26:LL_SYSCFG_GetConfigPinMux	16	static
+../Drivers/STM32C0xx_HAL_Driver/Inc/stm32c0xx_ll_system.h:508:22:LL_SYSCFG_ConfigPinMux	16	static
+../Drivers/STM32C0xx_HAL_Driver/Inc/stm32c0xx_ll_system.h:519:26:LL_SYSCFG_GetConfigPinMux	16	static
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:139:19:HAL_Init	16	static
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:176:19:HAL_DeInit	8	static
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:202:13:HAL_MspInit	8	static
@@ -23,9 +23,7 @@
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:507:6:HAL_DBGMCU_DisableDBGStopMode	8	static
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:516:6:HAL_DBGMCU_EnableDBGStandbyMode	8	static
 ../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:525:6:HAL_DBGMCU_DisableDBGStandbyMode	8	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:553:6:HAL_SYSCFG_EnableIOAnalogSwitchBooster	8	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:562:6:HAL_SYSCFG_DisableIOAnalogSwitchBooster	8	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:575:6:HAL_SYSCFG_EnableRemap	16	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:590:6:HAL_SYSCFG_DisableRemap	16	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:603:6:HAL_SYSCFG_SetPinBinding	16	static
-../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:616:10:HAL_SYSCFG_GetPinBinding	16	static
+../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:554:6:HAL_SYSCFG_EnableRemap	16	static
+../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:569:6:HAL_SYSCFG_DisableRemap	16	static
+../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:582:6:HAL_SYSCFG_SetPinBinding	16	static
+../Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal.c:595:10:HAL_SYSCFG_GetPinBinding	16	static

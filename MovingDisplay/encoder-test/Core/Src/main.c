@@ -102,7 +102,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	uint8_t ID = 0;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -178,11 +178,11 @@ int main(void)
     pspeed = speed;
 
     send_speed = speed + 5000;
-    speed_array[0] = 250 + ID;
+    speed_array[0] = 250;
 	speed_array[1] = send_speed % 100;
 	speed_array[2] = send_speed / 100;
 
-    HAL_UART_Transmit(&huart2, speed_array, 3, 10);
+    HAL_UART_Transmit(&huart2, speed_array, 3, 1);
 
 
 	if(readCounter() - Ltika_pcounter > 1000000){
@@ -249,7 +249,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x20303E5D;
+  hi2c1.Init.Timing = 0x0090194B;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -342,7 +342,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 500000;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

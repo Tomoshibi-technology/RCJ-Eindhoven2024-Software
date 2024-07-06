@@ -63,6 +63,16 @@ void Error_Handler(void);
 #define SLSW_GPIO_Port GPIOA
 #define SHDN_Pin GPIO_PIN_5
 #define SHDN_GPIO_Port GPIOA
+#define SW5_Pin GPIO_PIN_1
+#define SW5_GPIO_Port GPIOB
+#define SW4_Pin GPIO_PIN_2
+#define SW4_GPIO_Port GPIOB
+#define SW3_Pin GPIO_PIN_8
+#define SW3_GPIO_Port GPIOA
+#define SW2_Pin GPIO_PIN_6
+#define SW2_GPIO_Port GPIOC
+#define SW1_Pin GPIO_PIN_11
+#define SW1_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_7
 #define LED_GPIO_Port GPIOB
 
