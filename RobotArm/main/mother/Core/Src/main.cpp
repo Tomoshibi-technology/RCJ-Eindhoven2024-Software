@@ -70,23 +70,26 @@ STS servo0(&huart2, 0);
 STS servo1(&huart2, 1);
 STS servo2(&huart2, 2);
 STS servo3(&huart2, 3);
-int16_t pos0 = 0;
-int16_t pos1 = 0;
-int16_t pos2 = 0;
-int16_t pos3 = 0;
+int16_t servoPos0 = 0;
+int16_t servoPos1 = 0;
+int16_t servoPos2 = 0;
+int16_t servoPos3 = 0;
 uint8_t rxBuf[128];
 
-uint8_t sendArray[6] = {255, 255, 0, 0, 0, 0};
+int16_t ledPos0 = 0;
+int16_t ledPos1 = 0;
+int16_t ledPos2 = 0;
+
+uint8_t sendArray[8] = {255, 255, 0, 0, 0, 0, 0, 0};
 uint16_t degree = 0;
 
 uint8_t ready = 0 ;
-float rotate;
+int16_t gyro;
 
-uint8_t servoFlag = 0;
-
-uint32_t n = 0;
 uint32_t m = 0;
 
+static int16_t i = 8;
+static int16_t moveRotation = 0;
 
 
 
@@ -108,7 +111,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void get_position(uint8_t ID);
-void sendData(uint16_t angle, uint8_t speed);
+void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 
 
 
@@ -220,23 +223,91 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	    e = bno055.get_eular();
-	    rotate = (e.z/3.1415)*180;
-	    rotate = (int)rotate;
-		  get_position(0);
-		  get_position(2);
-	  if(HAL_GPIO_ReadPin(slidesw_GPIO_Port, slidesw_Pin) == 1){
-		  servo0.moveCont(3000, 6144, pos0);
-		  servo1.moveStop1(1000, 3000);
-		  servo2.moveCont(3000, 6144, pos2);
-		  servo3.moveStop3(1000, 3000);
-	  }else{
-		  servo0.moveCont(3000, 0, pos0);
-		  servo1.moveStop1(1000, 1000);
-		  servo2.moveCont(3000, 0, pos2);
-		  servo3.moveStop3(1000, 2000);
-	  }
-	  m++;
+	    gyro = (e.z/M_PI)*180;
 
+	    ledPos0 = (-gyro + ((servoPos0 % 4096 + 4096) % 4096) * 360 / 4096 + 360) % 360;
+	    ledPos2 = (ledPos0 + ((servoPos2 % 4096 + 4096) % 4096) * 360 / 4096) % 360;
+
+	    get_position(0);
+	    get_position(2);
+
+	    if(HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 0){
+		    servo0.moveCont(1500, 8191, servoPos0);
+		    servo2.moveCont(1500, 8191, servoPos2);
+
+		    if(i != 0){
+		    	i += 8;
+		    	if(i >= 180){
+		    		i -= 360;
+		    	}
+		    }
+
+		    moveRotation = calc.calcRotation(i, gyro);
+
+		    if(moveRotation > 0){
+		    	moveRotation += 10;
+		    }
+		    if(moveRotation < 0){
+		    	moveRotation -= 10;
+		    }
+
+			sendData(0, 0, moveRotation);
+
+			for(uint8_t led = 0; led < 16; led++){
+				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
+				NeopixelTape.show();
+			  }
+			for(uint8_t led = 32; led < 48; led++){
+				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
+				NeopixelTape.show();
+			}
+	    }else if(HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 1){
+		    servo0.moveCont(1500, 0, servoPos0);
+		    servo2.moveCont(1500, 0, servoPos2);
+
+		    if(i != 8){
+		    	i -= 8;
+		    	if(i < -180){
+		    		i += 360;
+		    	}
+		    }
+
+		    moveRotation = calc.calcRotation(i, gyro);
+
+		    if(moveRotation > 0){
+		    	moveRotation += 10;
+		    }
+		    if(moveRotation < 0){
+		    	moveRotation -= 10;
+		    }
+
+			sendData(0, 0, moveRotation);
+
+			for(uint8_t led = 0; led < 16; led++){
+				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+				NeopixelTape.show();
+			  }
+			for(uint8_t led = 32; led < 48; led++){
+				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+				NeopixelTape.show();
+			}
+	    }else{
+		    servo0.moveCont(1000, 0, servoPos0);
+		    servo2.moveCont(1000, 0, servoPos2);
+	    	sendData(0, 0, 0);
+			for(uint8_t led = 0; led < 16; led++){
+				NeopixelTape.set_hsv(led, 0, 0, 0);
+				NeopixelTape.show();
+			  }
+			for(uint8_t led = 32; led < 48; led++){
+				NeopixelTape.set_hsv(led, 0, 0, 0);
+				NeopixelTape.show();
+			}
+	    }
+
+
+
+		m++;
 
 
 
@@ -506,11 +577,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(servosw_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : slidesw_Pin */
-  GPIO_InitStruct.Pin = slidesw_Pin;
+  /*Configure GPIO pins : slidesw1_Pin slidesw2_Pin */
+  GPIO_InitStruct.Pin = slidesw1_Pin|slidesw2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(slidesw_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -580,40 +651,44 @@ void get_position(uint8_t ID)
   if (checksum == position[5] && position[0] == 0)
   {
     inst_pos0 = position[3] + position[4] * 256;
-    pos0 = servo0.calculate_position(inst_pos0);
+    servoPos0 = servo0.calculate_position(inst_pos0);
   }
   if (checksum == position[5] && position[0] == 1)
   {
 	inst_pos1 = position[3] + position[4] * 256;
-	pos1 = servo1.calculate_position(inst_pos1);
+	servoPos1 = servo1.calculate_position(inst_pos1);
   }
   if (checksum == position[5] && position[0] == 2)
   {
 	inst_pos2 = position[3] + position[4] * 256;
-	pos2 = servo2.calculate_position(inst_pos2);
+	servoPos2 = servo2.calculate_position(inst_pos2);
   }
   if (checksum == position[5] && position[0] == 3)
   {
 	inst_pos3 = position[3] + position[4] * 256;
-	pos3 = servo3.calculate_position(inst_pos3);
+	servoPos3 = servo3.calculate_position(inst_pos3);
   }
 }
 
-void sendData(uint16_t angle, uint8_t speed){
+void sendData(uint16_t angle, uint8_t speed, int16_t rotation){
 	  uint8_t checksum = 0;
+
+	  rotation += 360;
 
 	  sendArray[2] = angle / 256;
 	  sendArray[3] = angle % 256;
 	  sendArray[4] = speed;
+	  sendArray[5] = rotation / 256;
+	  sendArray[6] = rotation % 256;
 
-	  for (uint8_t i = 2; i < 5; i++)
+	  for (uint8_t i = 2; i < 7; i++)
 	  {
 	    checksum += sendArray[i];
 	  }
+	  checksum = ~checksum;
 	  checksum += 10;
-	  checksum %= 256;
-	  sendArray[5] = checksum;
-	  HAL_UART_Transmit(&huart3, sendArray, 6, 100);
+	  sendArray[7] = checksum;
+	  HAL_UART_Transmit(&huart3, sendArray, 8, 100);
 	  HAL_Delay(1);
 }
 

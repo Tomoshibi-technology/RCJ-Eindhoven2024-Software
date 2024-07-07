@@ -60,6 +60,8 @@ WS2812C NeopixelBoard(&htim3, TIM_CHANNEL_2, &hdma_tim3_ch2);
 WS2812C NeopixelTape(&htim3, TIM_CHANNEL_1, &hdma_tim3_ch1_trig);
 CALC calc;
 
+uint32_t m = 0;
+
 
 
 
@@ -150,13 +152,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  for(uint16_t i = 0; i < 360; i++){
-		  for(uint8_t led = 0; led < 32; led++){
-			  NeopixelTape.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 255);
-		  }
-		  HAL_Delay(1);
-		  NeopixelTape.show();
+	  static uint16_t i = 0;
+	  i++;
+	  if(i >= 360){
+		  i -= 360;
 	  }
+		  for(uint8_t led = 0; led < 32; led++){
+			  NeopixelTape.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 10);
+		  }
+		  NeopixelTape.show();
+	  m++;
 
 
 

@@ -4,3 +4,4 @@ c:\st\stm32cubeide_1.12.1\stm32cubeide\plugins\com.st.stm32cube.ide.mcu.external
 ../Core/Src/calc.cpp:70:9:int16_t CALC::similarityFall(uint8_t, int16_t, uint16_t, uint16_t, uint16_t)	56	static
 ../Core/Src/calc.cpp:107:9:int16_t CALC::similarityNormal(uint8_t, int16_t, uint16_t)	56	static
 ../Core/Src/calc.cpp:130:9:uint8_t CALC::range(int8_t, int16_t, uint16_t)	32	static
+../Core/Src/calc.cpp:145:9:int16_t CALC::calcRotation(int16_t, int16_t)	24	static

@@ -3,7 +3,7 @@
 
 int16_t CALC::similarityPeak(uint8_t ledNum, int16_t refference, uint16_t widthAngle, uint16_t center, uint16_t widthHue){
 	ledNum %= 16;
-	uint16_t angle = ledNum * 360 / 16 + 360 / 32;
+	uint16_t angle = 360 - (ledNum * 360 / 16 + 360 / 32);
 	uint16_t diff = abs(angle - refference);
 	if (diff > 180) {
 		diff = 360 - diff;
@@ -32,7 +32,7 @@ int16_t CALC::similarityPeak(uint8_t ledNum, int16_t refference, uint16_t widthA
 
 int16_t CALC::similarityRise(uint8_t ledNum, int16_t refference, uint16_t widthAngle, uint16_t center, uint16_t widthHue){
 	ledNum %= 16;
-	uint16_t angle = ledNum * 360 / 16 + 360 / 32;
+	uint16_t angle = 360 - (ledNum * 360 / 16 + 360 / 32);
 	int16_t diff = angle - refference;
 	if (diff > 180) {
 		diff = diff - 360;
@@ -69,7 +69,7 @@ int16_t CALC::similarityRise(uint8_t ledNum, int16_t refference, uint16_t widthA
 
 int16_t CALC::similarityFall(uint8_t ledNum, int16_t refference, uint16_t widthAngle, uint16_t center, uint16_t widthHue){
 	ledNum %= 16;
-	uint16_t angle = ledNum * 360 / 16 + 360 / 32;
+	uint16_t angle = 360 - (ledNum * 360 / 16 + 360 / 32);
 	int16_t diff = angle - refference;
 	if (diff > 180) {
 		diff = diff - 360;
@@ -106,7 +106,7 @@ int16_t CALC::similarityFall(uint8_t ledNum, int16_t refference, uint16_t widthA
 
 int16_t CALC::similarityNormal(uint8_t ledNum, int16_t refference, uint16_t width){
 	ledNum %= 16;
-	uint16_t angle = ledNum * 360 / 16 + 360 / 32;
+	uint16_t angle = 360 - (ledNum * 360 / 16 + 360 / 32);
 	uint16_t diff = abs(angle - refference);
     if (diff > 180) {
         diff = 360 - diff;
@@ -129,7 +129,7 @@ int16_t CALC::similarityNormal(uint8_t ledNum, int16_t refference, uint16_t widt
 
 uint8_t CALC::range(int8_t ledNum, int16_t refference, uint16_t width){
 	ledNum %= 16;
-	uint16_t angle = ledNum * 360 / 16 + 360 / 32;
+	uint16_t angle = 360 - (ledNum * 360 / 16 + 360 / 32);
 	uint16_t diff = abs(angle - refference);
     if (diff > 180) {
         diff = 360 - diff;
@@ -140,4 +140,16 @@ uint8_t CALC::range(int8_t ledNum, int16_t refference, uint16_t width){
     }else{
     	return 1;
     }
+}
+
+int16_t CALC::calcRotation(int16_t targetRotation, int16_t nowRotation){
+    int16_t diffRotation = targetRotation - nowRotation;
+
+    if(diffRotation > 180){
+        diffRotation -= 360;
+    }else if(diffRotation < -180){
+        diffRotation += 360;
+    }
+
+    return diffRotation;
 }

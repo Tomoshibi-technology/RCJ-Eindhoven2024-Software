@@ -75,8 +75,8 @@ all: main-build
 main-build: MD.elf secondary-outputs
 
 # Tool invocations
-MD.elf MD.map: $(OBJS) $(USER_OBJS) C:\Users\tomoh\STM32CubeIDE\workspace_1.12.1\MD\STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "MD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\Users\tomoh\STM32CubeIDE\workspace_1.12.1\MD\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MD.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+MD.elf MD.map: $(OBJS) $(USER_OBJS) C:\github\RCJ-Eindhoven2024-Software\RobotArm\MD\MD\STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "MD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\github\RCJ-Eindhoven2024-Software\RobotArm\MD\MD\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MD.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

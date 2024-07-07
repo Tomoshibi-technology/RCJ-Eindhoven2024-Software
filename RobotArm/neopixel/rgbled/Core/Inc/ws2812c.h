@@ -7,7 +7,7 @@
 class WS2812C{
     private:
         #define RST 250
-  	  	#define LED_NUM 32
+  	  	#define LED_NUM 48
 		#define HIGH 20
 		#define LOW 10
         uint8_t TIM_CHANNEL_X;

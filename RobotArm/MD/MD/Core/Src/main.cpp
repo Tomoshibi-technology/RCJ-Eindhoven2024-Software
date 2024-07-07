@@ -68,10 +68,11 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 int16_t value = 0;
 static uint8_t rxBuf[128];
-uint8_t receiveArray[11] = {0};
+uint8_t receiveArray[15] = {0};
 uint8_t read[6] = {0};
 uint16_t angle = 0;
 uint8_t speed = 0;
+int16_t rotation = 0;
 
 uint8_t ID = 0;
 uint16_t m_angle = 0;
@@ -181,6 +182,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  receiveData();
 	  value = calcValue();
+	  value += rotation;
+	  if(value < -290){
+		  value = -290;
+	  }
+	  if(value > 290){
+		  value = 290;
+	  }
 	  if(HAL_GPIO_ReadPin (slide_GPIO_Port, slide_Pin) == 0){
 		  value = 0;
 	  }
@@ -402,43 +410,43 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void receiveData(){
-	uint8_t checksum = 0;
-	static uint8_t index = 0;
+  uint8_t checksum = 0;
+  static uint8_t index = 0;
 
   index = huart2.hdmarx->Instance->CNDTR;
   index = sizeof(rxBuf) - index;
 
-  if (index >= 11)
+  if (index >= 15)
   {
-    for (int i = 0; i < 11; i++)
+    for (int i = 0; i < 15; i++)
     {
-      receiveArray[i] = rxBuf[index - 10 + i];
+      receiveArray[i] = rxBuf[index - 14 + i];
       HAL_Delay(1);
     }
   }
 
-  for (int i = 0; i < 11; i++)
+  for (int i = 0; i < 15; i++)
   {
     if (receiveArray[i] == 255 && receiveArray[i + 1] == 255)
     {
       for (int j = 0; j < 6; j++)
       {
-        read[j] = receiveArray[i + j];
+        read[j] = receiveArray[i + j + 2];
       }
     }
   }
 
-  for (int i = 2; i < 5; i++)
+  for (int i = 0; i < 5; i++)
   {
     checksum += read[i];
   }
-  checksum += 10;
-  checksum %= 256;
+  checksum = ~checksum + 10;
 
   if (read[5] == checksum)
   {
-	  angle = read[2] * 256 + read[3];
-	  speed = read[4];
+	  angle = read[0] * 256 + read[1];
+	  speed = read[2];
+	  rotation = read[3] + 256 + read[4] - 360;
   }
 }
 

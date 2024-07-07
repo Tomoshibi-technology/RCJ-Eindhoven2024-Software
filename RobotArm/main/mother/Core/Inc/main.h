@@ -63,8 +63,10 @@ void Error_Handler(void);
 #define measure_GPIO_Port GPIOA
 #define servosw_Pin GPIO_PIN_1
 #define servosw_GPIO_Port GPIOA
-#define slidesw_Pin GPIO_PIN_13
-#define slidesw_GPIO_Port GPIOB
+#define slidesw1_Pin GPIO_PIN_13
+#define slidesw1_GPIO_Port GPIOB
+#define slidesw2_Pin GPIO_PIN_15
+#define slidesw2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
