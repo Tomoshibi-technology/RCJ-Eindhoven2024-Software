@@ -41,24 +41,27 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-
+uint8_t rxBuf[128]={};
+uint8_t rxColor[3]={0,0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, int go_back);
+int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-uint8_t buffer[256];
-HAL_StatusTypeDef s;
 
 /* USER CODE END 0 */
 
@@ -91,8 +94,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_UART_Receive_DMA(&huart2,rxBuf,128);
 
   /* USER CODE END 2 */
 
@@ -105,15 +112,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  s = HAL_UART_Receive(&huart2, buffer, 1, 3000);
-//	  if (s == HAL_TIMEOUT)
-//	  {
-//		HAL_UART_Transmit(&huart2, "UART Timeout.\r\n", 15, 10);
-//	  }
-//	  else if (s == HAL_OK)
-//	  {
-//		HAL_UART_Transmit(&huart2, buffer, 1, 10);
-//	  }
+	  readBuf(&huart2, rxBuf, 128, rxColor, 3, 10);
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -193,6 +193,55 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -205,6 +254,8 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(CAMERA_POWER_GPIO_Port, CAMERA_POWER_Pin, GPIO_PIN_RESET);
@@ -221,6 +272,41 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, int go_back){
+	int wrt_pt = buf_size - uart->hdmarx->Instance->NDTR;
+	int rd_pt = wrt_pt - go_back;
+	if(rd_pt < 0){
+		rd_pt += buf_size;
+	}
+
+	while(1){
+		uint8_t readData = buf[rd_pt];
+//		buf[rd_pt] = 255; //読み込み済みのしるし
+		if(readData == 250){ //rd_ptがスタートバイトの位置になる
+			for(int i=1; i<=data_size; i++){ //rd_pt+i が今回よむポインタになるように
+				if(rd_pt + i > buf_size - 1){ //回りきっていないか確認
+					rd_pt = rd_pt - buf_size;
+				}
+				data[i-1] = buf[rd_pt + i]; //返すデータに入れる
+//				buf[rd_pt+i] = 255; //読み込み済みのしるし。
+			}
+			break;
+		}
+
+		//次のための処理
+		rd_pt++;
+		if(rd_pt == buf_size){ //buf_sizeは配列の一番最後の次
+			rd_pt = rd_pt - buf_size;
+		}
+		if(rd_pt == wrt_pt){//スタートバイトに出会えず書き込みポインタまできたら終わり
+//			for(int i=0; i<data_size; i++){
+//				data[i] = 255; //無かったことを表す数字
+//			}
+			break;
+		}
+	}
+}
+
 
 /* USER CODE END 4 */
 

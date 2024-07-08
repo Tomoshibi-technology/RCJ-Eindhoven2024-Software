@@ -23,7 +23,7 @@ sensor.run(1)
 # シリアル通信の初期化
 fm.register(35,fm.fpioa.UART1_TX, force=True)
 fm.register(34,fm.fpioa.UART1_RX, force=True)
-uart = UART(UART.UART1, 115200, 8, 0, 0, timeout=1000, read_buf_len=4096)
+uart = UART(UART.UART1, 115200, 8, None, 1, timeout=1000, read_buf_len=4096)
 
 
 #uart = utils.UART(3, 115200)
@@ -34,7 +34,7 @@ def mask_image_and_get_color_and_center(img):
     #mask = img.binary([thresholds], invert=False)
     #masked_image = img.add(mask)
 
-    blobs = img.find_blobs([thresholds], invert=True,pixels_threshold =100) # しきい値外の色を検出
+    blobs = img.find_blobs([thresholds], invert=True, pixels_threshold =100) # しきい値外の色を検出
     if blobs:
 
         # 最大サイズのブロブを見つける
