@@ -16,6 +16,8 @@ sensor.set_brightness(0)            # 明度の調整
 sensor.set_saturation(0)            # 彩度の調整
 sensor.set_contrast(3)              # コントラストの調整
 
+sensor.set_vflip(1)          # 画像反転
+
 sensor.skip_frames(time=2000)        # カメラ初期化のための待機
 sensor.run(1)
 
@@ -115,4 +117,4 @@ while True:
     #avg_r, avg_g, avg_b, center_x, center_y =
     mask_image_and_get_color_and_center(img)  # 画像をマスクして色と中心を取得
 
-    time.sleep(0.2)  # 少し待機してループを繰り返す
+    time.sleep(0.1)  # 少し待機してループを繰り返す

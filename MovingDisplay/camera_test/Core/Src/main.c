@@ -47,6 +47,14 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 uint8_t rxBuf[128]={};
 uint8_t rxColor[3]={0,0};
+
+int travel_x;
+int travel_y;
+uint8_t send_array[11];
+
+int hue = 0;
+int hue_back = 127;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,7 +70,80 @@ int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void set_array(int tx, int cx, int cz, uint8_t r, uint8_t h, uint8_t h2, uint8_t v){
+	send_array[0]=220;
 
+	if(cx - tx > 48+r){
+		cx = cx -((48*2) - (r*2)+1);
+	}else if(cx - tx < -(48-r)){
+		cx = cx + ((48*2) + (r*2)-1);
+	}
+
+//	c_x = cx;
+
+	tx += 5000; cx += 5000; cz += 5000;
+	uint8_t h_out = h/2.5;
+	uint8_t h_out2 = h2/2.5;
+	uint8_t v_out = v/2.5;
+	for(int i = 1; i <3 ;i++){
+		send_array[i] = tx%100;
+		tx = (int)tx/100;
+	}
+	for(int i = 3; i <5 ;i++){
+		send_array[i] = cx%100;
+		cx = (int)cx/100;
+	}
+	for(int i = 5; i <7 ;i++){
+		send_array[i] = cz%100;
+		cz = (int)cz/100;
+	}
+	send_array[7] = r;
+	if(h_out > 100){h_out = 100;}
+	send_array[8] = h_out;
+	if(h_out2 > 100){h_out2 = 100;}
+	send_array[9] = h_out2;
+	if(v_out > 100){v_out = 100;}
+	send_array[10] = v_out;
+}
+
+uint8_t rgbToHue(int r, int g, int b) {
+    // RGB値を0-15から0-1に正規化
+    float rf = r / 15.0;
+    float gf = g / 15.0;
+    float bf = b / 15.0;
+
+    // 最大値、最小値、および範囲を求める
+    float max_val = rf;
+    if (gf > max_val) max_val = gf;
+    if (bf > max_val) max_val = bf;
+
+    float min_val = rf;
+    if (gf < min_val) min_val = gf;
+    if (bf < min_val) min_val = bf;
+
+    float delta = max_val - min_val;
+
+    float h = 0.0;
+
+    // 色相（H）の計算
+    if (delta == 0) {
+        h = 0; // 無彩色（グレースケール）
+    } else {
+        if (max_val == rf) {
+            h = 60 * ((gf - bf) / delta);
+            if (h < 0) h += 360; // Hが負の場合360を加算
+        } else if (max_val == gf) {
+            h = 60 * ((bf - rf) / delta + 2);
+        } else if (max_val == bf) {
+            h = 60 * ((rf - gf) / delta + 4);
+        }
+    }
+
+    // Hを0-255の範囲にスケール変換
+    h = (h / 360) * 255;
+
+    return h;
+}
 /* USER CODE END 0 */
 
 /**
@@ -112,8 +193,24 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  readBuf(&huart2, rxBuf, 128, rxColor, 3, 10);
-	  HAL_Delay(1000);
+		readBuf(&huart2, rxBuf, 128, rxColor, 3, 10);
+		HAL_Delay(1000);
+
+//		travel_x = -1*odom1.get_travel() - xf;
+//		travel_y = -1*odom2.get_travel() - yf;
+
+		travel_x = 31;
+
+		if( (rxColor[0]==15 && rxColor[1]==15) && rxColor[2]==15){
+			hue = hue_back;
+		}else{
+			hue = rgbToHue(rxColor[0],rxColor[1],rxColor[2]);
+			hue_back = (hue + 90)%250;
+		}
+
+		float size = 12.0+((-1.0)*travel_y*0.1);
+		set_array((-1)*travel_x, (-1)*126, 24, (int)size, hue, hue_back, 21);
+		HAL_UART_Transmit(&huart3,(uint8_t*)&send_array, 11, 100);
   }
   /* USER CODE END 3 */
 }
