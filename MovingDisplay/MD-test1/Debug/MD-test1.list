@@ -37,11 +37,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  00015a3b  00000000  00000000  0001a61d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00011736  00000000  00000000  00030058  2**0
+ 17 .debug_line   00011738  00000000  00000000  00030058  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008a9cd  00000000  00000000  0004178e  2**0
+ 18 .debug_str    0008a9cd  00000000  00000000  00041790  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000086  00000000  00000000  000cc15b  2**0
+ 19 .comment      00000086  00000000  00000000  000cc15d  2**0
                   CONTENTS, READONLY
  20 .debug_frame  0000333c  00000000  00000000  000cc1e4  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -661,8 +661,9 @@ int main(void)
  80004ee:	681b      	ldr	r3, [r3, #0]
  80004f0:	607b      	str	r3, [r7, #4]
 
-//	  indexA = readINDEX(&huart1, rxBufA, 64);
-//	  indexB = readINDEX(&huart2, rxBufB, 128);
+//if value did not update, alert by LED and motor sound.
+//対策 against DMA did not start correctly
+//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後のがたつきと通信線繋いでないときの動作)
 
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, 5);
  80004f2:	4b74      	ldr	r3, [pc, #464]	@ (80006c4 <main+0x2ac>)

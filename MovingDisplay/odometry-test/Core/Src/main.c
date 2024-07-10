@@ -51,22 +51,30 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-uint8_t rxBuf[2] = {};
-uint8_t speed_array[3] = {};
+uint8_t rxBufA[2] = {};
+uint8_t rxBufB[128] = {[0 ... 127] = 255};
+uint8_t send_array[3] = {};
+
+uint8_t p_wrtptB = 0;
+uint8_t p_rdptB = 0;
+
+uint8_t rx_check = 0;
+uint8_t stop_counter = 0;
+uint8_t error_counter = 0;
 
 long totalAng = 0;
 long ptotalAng = 0;
+uint16_t firstAng;
 uint16_t Angle;
 uint16_t pAngle;
-int16_t dAngle;
+
+int16_t position = 0;
+uint16_t send_position = 20000;
 
 volatile uint32_t counter;
 uint64_t u_counter;
 uint16_t dtime;
 
-int16_t speed;
-int16_t pspeed = 0;
-int16_t send_speed = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +85,9 @@ static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint8_t* stop_counter, uint8_t* error_counter);
+uint8_t readID();
+int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -103,7 +113,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	uint8_t ID = 0;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -130,33 +140,47 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
-
-  uint16_t AS5600_ADDR = 0x36 << 1;
-  uint8_t ANGLE_ADDR = 0x0E;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_I2C_Master_Transmit(&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1, 10);
-  HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBuf, 2, 10);
+  uint16_t AS5600_ADDR = 0x36 << 1;
+  uint8_t ANGLE_ADDR = 0x0E;
+  uint8_t ID;
 
-  uint32_t d_pcounter, Ltika_pcounter;
+  uint32_t d_pcounter, Ltika_pcounter, buf_pcounter;
   d_pcounter = Ltika_pcounter = readCounter();
 
-  pAngle = rxBuf[0]*256 + rxBuf[1];
-  ptotalAng = pAngle;
+  if(readID() < 2){
+	  ID = readID();//自身のID
+  }else{
+	  while(1){
+		  if(readCounter() - Ltika_pcounter > 10000){
+		  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	    	Ltika_pcounter = readCounter();
+		  }else{}
+	  }
+  }
+
+  HAL_UART_Receive_DMA(&huart2,rxBufB,128);
+
+  HAL_I2C_Master_Transmit(&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1, 10);
+  HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBufA, 2, 10);
+
+  pAngle = rxBufA[0]*256 + rxBufA[1];
+  ptotalAng = firstAng = pAngle;
 
   while (1)
   {
 	u_counter = readCounter();
 
 	HAL_I2C_Master_Transmit(&hi2c1, AS5600_ADDR, &ANGLE_ADDR, 1, 10);
-	HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBuf, 2, 10);
+	HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBufA, 2, 10);
 
 	dtime = readCounter() - d_pcounter;
 	d_pcounter = d_pcounter + dtime;
 
-	Angle = rxBuf[0]*256 + rxBuf[1];
+	Angle = rxBufA[0]*256 + rxBufA[1];
 
 	if(Angle-pAngle>0 && abs(Angle-pAngle)<3000){
 		totalAng = ptotalAng + (Angle-pAngle);
@@ -170,27 +194,45 @@ int main(void)
 		totalAng = ptotalAng;
 	}
 
-	dAngle = totalAng - ptotalAng;
-	speed = dAngle*78125/ dtime;
-	speed = (0.8*speed) + (0.2*pspeed);
-
 	ptotalAng = totalAng;
 	pAngle = Angle;
-	pspeed = speed;
 
-	send_speed = speed + 5000;
-	speed_array[0] = 250 + ID;
-	speed_array[1] = send_speed % 100;
-	speed_array[2] = send_speed / 100;
-
-	HAL_UART_Transmit(&huart2, speed_array, 3, 1);
+	position = (totalAng - firstAng)*1000/25129;
 
 
-	if(readCounter() - Ltika_pcounter > 1000000){
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		Ltika_pcounter = readCounter();
+	readBuf(&huart2, rxBufB, 128, &rx_check, ID, &p_wrtptB, &p_rdptB, &stop_counter, &error_counter);
+
+	if(rx_check == 1){buf_pcounter = readCounter(); rx_check = 0;}
+
+	if((u_counter - buf_pcounter) > 800){
+		send_position = position + 20000;
+		send_array[0] = 254;
+		send_array[1] = send_position % 200;
+		send_array[2] = send_position / 200;
+
+		if(HAL_UART_Transmit(&huart2, send_array, 3, 1) == HAL_OK){
+			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		}
 	}
-	else{}
+
+//	if(rx_check == 1){
+//		send_position = position + 20000;
+//		send_array[0] = 254;
+//		send_array[1] = send_position % 200;
+//		send_array[2] = send_position / 200;
+//
+//		HAL_Delay(1);
+//
+//		if(HAL_UART_Transmit(&huart2, send_array, 3, 10) == HAL_OK){
+//			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		}
+//	}
+
+
+//	if(readCounter() - Ltika_pcounter > 1000000){
+//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		Ltika_pcounter = readCounter();
+//	}else{}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -405,12 +447,117 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : SW1_Pin SW2_Pin SW3_Pin SW4_Pin
+                           SW5_Pin */
+  GPIO_InitStruct.Pin = SW1_Pin|SW2_Pin|SW3_Pin|SW4_Pin
+                          |SW5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint8_t* stop_counter, uint8_t* error_counter){
+	int wrt_pt = uart->hdmarx->Instance->CNDTR;
+	wrt_pt= buf_size - wrt_pt;
+	int rd_pt;
 
+	if(wrt_pt != *p_rdpt){//wrtに追い付かれてない
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてない=追い越されてない
+			if(wrt_pt != *p_wrtpt){//wrt_ptが進んだ=受信した
+//正常
+				rd_pt = *p_rdpt;
+			}else{//wrt_ptが進んでない=受信してない
+//受信してない
+				(*stop_counter)++;
+				rd_pt = *p_rdpt;
+			}
+		}else{//p_rdptが書き換えられた=追い越された
+//追い越された
+			rd_pt = wrt_pt - 40;
+				if(rd_pt < 0){rd_pt += buf_size;}
+			(*error_counter)++;
+		}
+	}else{//wrtに追い付かれた,追い付いた
+		int front_pt = wrt_pt + 1;
+			if(front_pt>buf_size-1){front_pt -= buf_size;}
+		if(front_pt == 255){//追い付いた
+			rd_pt = *p_rdpt;
+		}else{//追い付かれた
+			rd_pt = wrt_pt - 40;
+				if(rd_pt < 0){rd_pt += buf_size;}
+			(*error_counter)++;
+		}
+	}
+
+	*data = 0;
+
+	while(1){
+		int dif_pt = wrt_pt - rd_pt;
+			if(dif_pt < 0){dif_pt += buf_size;}
+		if(dif_pt <= 20){break;}
+
+		rd_pt++;
+			if(rd_pt>buf_size-1){rd_pt -= buf_size;}
+
+//		if(buf[rd_pt] == 250+id){
+//			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれない,25以上もだめ
+//				if(goal_rdpt>buf_size-1){goal_rdpt -= buf_size;}
+//			int temp_rdpt = rd_pt;
+//			buf[rd_pt] = 255;
+//
+//			for(int i=0; temp_rdpt==goal_rdpt; i++){
+//				temp_rdpt += 1;
+//					if(temp_rdpt>buf_size-1){temp_rdpt -= buf_size;}
+//
+//				data[i] = buf[temp_rdpt];
+//				buf[temp_rdpt] = 255;
+//			}
+//
+//			rd_pt = temp_rdpt;
+//
+//			dif_pt = wrt_pt - rd_pt;
+//				if(dif_pt < 0){dif_pt += buf_size;}
+//			if(dif_pt >= buf_size/2){}
+//			else{break;}
+//		}else{buf[rd_pt] = 255;}
+
+		if(buf[rd_pt] == 248+id){
+			*data = 1;
+			buf[rd_pt] = 255;
+
+			dif_pt = wrt_pt - rd_pt;
+				if(dif_pt < 0){dif_pt += buf_size;}
+			if(dif_pt >= buf_size/2){}
+			else{break;}
+			break;
+		}else{buf[rd_pt] = 255;}
+	}
+
+	*p_rdpt = rd_pt;
+//	*p_wrtpt = buf_size - (uart->hdmarx->Instance->CNDTR);
+	*p_wrtpt = wrt_pt;
+}
+
+int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size){
+	int index = uart->hdmarx->Instance->CNDTR;
+	index = buf_size - index;
+	return index;
+}
+
+uint8_t readID(){
+	uint8_t id;
+	if(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin)==1){id=0;}
+	else if(HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin)==1){id=1;}
+	else if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){id=2;}
+	else if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){id=3;}
+	else if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){id=4;}
+	else{id=5;}
+	return id;
+}
 /* USER CODE END 4 */
 
 /**

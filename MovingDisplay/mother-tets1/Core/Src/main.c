@@ -51,8 +51,13 @@ uint32_t m_counter;
 int16_t MTRS[4]={0, 0, 0, 0};
 uint8_t send_array[12] = {250, 0, 50, 251, 0, 50, 252, 0, 50, 253, 0, 50};
 
-int16_t speed;
-int16_t degree;
+int16_t trgt_speed = 0;
+int16_t trgt_degree = 0;
+
+uint8_t rxData[3]={};
+int16_t position;
+
+uint16_t dtime;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,7 +66,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void setgo(int speed, int degree);
+void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspeed, float motor_rate);
+void set_array(int16_t* mtrspeed, uint8_t* sendarray);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -113,67 +119,62 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    uint32_t Ltika_pcounter = m_counter;
-    uint32_t tx_pcounter = m_counter;
+//    uint32_t Ltika_pcounter = m_counter;
+    uint32_t set_pcounter = m_counter;
+    uint32_t Tx_pcounter = m_counter;
+    uint32_t d_pcounter = m_counter;
+
+    uint8_t Odo_ID = 248;
 
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  dtime = m_counter - d_pcounter;
+	  d_pcounter = m_counter;
 
+	  if(m_counter - set_pcounter > 10){
+		  set_pcounter = m_counter;
+		  trgt_degree = trgt_degree + 1;
 
+		  if(trgt_speed < 30){trgt_speed = trgt_speed + 10;}
+		  else{trgt_speed = 500;}
 
-
-
-
-	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
-		  if(m_counter - tx_pcounter > 2){
-				tx_pcounter = m_counter;
-
-				for(int i=0; i<4; i++){
-					if(speed_array[i] >= 5500 || speed_array[i]<= 4500){katamuki_array[i] = -katamuki_array[i];}
-					speed_array[i] = speed_array[i] + katamuki_array[i];
-				}
-
-				for(int i=0; i<4; i++){
-					send_array[3*i] = 250+i;
-					send_array[3*i+1] = speed_array[i] % 100;
-					send_array[3*i+2] = speed_array[i] / 100;
-				}
-
-				HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 0){
+			  trgt_degree = 0;
+			  trgt_speed = 0;
 		  }
-	  }else{
-		  if(m_counter - tx_pcounter > 5){
-				tx_pcounter = m_counter;
-
-				speed_array[0]=5000;
-				speed_array[1]=5500;
-				speed_array[2]=5000;
-				speed_array[3]=4500;
-
-
-				katamuki_array[0]=1;
-				katamuki_array[1]=1;
-				katamuki_array[2]=-1;
-				katamuki_array[3]=-1;
-
-				for(int i=0; i<4; i++){
-					send_array[3*i] = 250+i;
-					send_array[3*i+1] = 0;
-					send_array[3*i+2] = 50;
-				}
-
-				HAL_UART_Transmit(&huart6, send_array, 12, 10);
-		  }
-	  }
-
-
-	  if(m_counter - Ltika_pcounter > 1000){
-	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  	Ltika_pcounter = m_counter;
 	  }else{}
+
+	  speed_set(27, trgt_speed, trgt_degree, MTRS, 0.7);
+	  set_array(MTRS, send_array);
+
+	  if(m_counter - Tx_pcounter > 10){
+		  Tx_pcounter = m_counter;
+		  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
+			  HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		  }else{
+				for(int i=0; i<4; i++){
+				  send_array[3*i] = 250 + i;
+				  send_array[3*i + 1] = 0;
+				  send_array[3*i + 2] = 50;
+				}
+				HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		  }
+		  HAL_UART_Transmit(&huart6, &Odo_ID, 1, 10);
+		  if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
+			  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  }
+
+		  position = rxData[1] + rxData[2]*200 - 20000;
+	  }else{}
+
+
+//	  if(m_counter - Ltika_pcounter > 1000){
+//	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//	  	Ltika_pcounter = m_counter;
+//	  }else{}
   }
   /* USER CODE END 3 */
 }
@@ -190,16 +191,28 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 180;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -208,12 +221,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -238,7 +251,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 16-1;
+  htim2.Init.Prescaler = 90-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 1000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -309,6 +322,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
@@ -333,18 +347,57 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void speed_aset(int speed, int degree, int* mtrspeed){
-	if(degree > 180 || degree <= -180){
-		degree = degree % 360;
-		if(degree > 180){
-			degree = degree - 360;
-		}else if(degree <= -180){
-			degree = degree + 360;
-		}
-	}
+void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspeed, float motor_rate){
+	goal_degree = goal_degree % 360;
+	if(goal_degree < 0){goal_degree += 360;}
+
+//    int roll_speed;
+//	gyro_degree = gyro_degree % 360;
+//	if(gyro_degree < 0){gyro_degree += 360;}
+
+    int roll_speed;
+    if(gyro_degree > 180){gyro_degree -= 360;}
+    else if(gyro_degree <-180){gyro_degree += 360;}
+    else{}
+
+
+    if (gyro_degree > 0){
+        roll_speed = -10 + (-gyro_degree * 3);
+        if (gyro_degree < 6){
+            roll_speed = 0;
+        }
+        if (roll_speed < -150){
+            roll_speed = -150;
+        }
+    }else if (gyro_degree < 0){
+        roll_speed = 10 + (-gyro_degree * 3);
+        if (gyro_degree > -6){
+            roll_speed = 0;
+        }
+        if (roll_speed > 150){
+            roll_speed = 150;
+        }
+    }else{
+        roll_speed = 0;
+    }
+
+
+	int conv_degree = -goal_degree + 45;
+	if(conv_degree < 0){conv_degree = conv_degree + 360;}
 
 	for(int i=0; i<4; i++){
-		mtrspeed[i] = (sin((degree + (135.0 - i*90.0)) / 180.0*3.14)*speed);
+		mtrspeed[i] = goal_speed * sin((conv_degree + 90.0*i) / 180.0 * 3.1415);
+		mtrspeed[i] = (mtrspeed[i] * motor_rate) + (roll_speed * (1 - motor_rate));
+	}
+}
+
+void set_array(int16_t* mtrspeed, uint8_t* sendarray){
+	uint16_t conv_mtrspeed[4];
+	for(int i=0; i<4; i++){conv_mtrspeed[i] = mtrspeed[i] + 5000;}
+	for(int i=0; i<4; i++){
+		sendarray[3*i] = 250+i;
+		sendarray[3*i+1] = conv_mtrspeed[i] % 100;
+		sendarray[3*i+2] = conv_mtrspeed[i] / 100;
 	}
 }
 /* USER CODE END 4 */

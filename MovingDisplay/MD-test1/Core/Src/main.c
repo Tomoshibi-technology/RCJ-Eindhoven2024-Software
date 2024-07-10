@@ -187,6 +187,10 @@ int main(void)
 //	  indexA = readINDEX(&huart1, rxBufA, 64);
 //	  indexB = readINDEX(&huart2, rxBufB, 128);
 
+//if value did not update, alert by LED and motor sound.
+//対策 against DMA did not start correctly
+//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後のがたつきと通信線繋いでないときの動作)
+
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, 5);
 	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, 25);
 
