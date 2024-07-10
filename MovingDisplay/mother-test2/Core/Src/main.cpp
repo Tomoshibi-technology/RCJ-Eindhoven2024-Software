@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "BNO055.hpp"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,12 +41,27 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
+uint8_t ready = 0 ;
+float rotate;
 
+uint32_t m_counter;
+int16_t MTRS[4]={0, 0, 0, 0};
+uint8_t send_array[12] = {250, 0, 50, 251, 0, 50, 252, 0, 50, 253, 0, 50};
+
+int16_t trgt_speed = 0;
+int16_t trgt_degree = 0;
+
+uint8_t rxData[3]={};
+int16_t position;
+
+uint16_t dtime;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -53,13 +69,20 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-
+void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspeed, float motor_rate);
+void set_array(int16_t* mtrspeed, uint8_t* sendarray);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim == &htim2){
+        m_counter++;
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -93,14 +116,97 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_USART6_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Transmit(&huart6, send_array, 12, 10);
 
+
+  HAL_Delay(1000);
+
+  while (!ready) {
+    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28<< 1, 10, 1000) == HAL_OK) {
+      ready = 1;
+    } else {
+    	ready = 0;
+    	HAL_Delay(100);
+    	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+    }
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+//  uint32_t Ltika_pcounter = m_counter;
+  uint32_t set_pcounter = m_counter;
+  uint32_t Tx_pcounter = m_counter;
+  uint32_t d_pcounter = m_counter;
+
+  uint8_t Odo_ID = 248;
+
+
+
+  unsigned char address = 0x28;
+  BNO055 bno055(hi2c1,address);
+  QUATERNION q;
+  EULAR e;
   while (1)
   {
+	dtime = m_counter - d_pcounter;
+	d_pcounter = m_counter;
+
+
+	e = bno055.get_eular();
+	rotate = -1*(e.z/3.1415)*180;
+	rotate = (int)rotate;
+
+
+
+//	if(m_counter - set_pcounter > 10){
+//	  set_pcounter = m_counter;
+//	  trgt_degree = trgt_degree + 1;
+//
+//	  if(trgt_speed < 30){trgt_speed = trgt_speed + 10;}
+//	  else{trgt_speed = 500;}
+//
+//	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 0){
+//		  trgt_degree = 0;
+//		  trgt_speed = 0;
+//	  }
+//	}else{}
+
+
+	speed_set(rotate, trgt_speed, trgt_degree, MTRS, 0.7);
+	set_array(MTRS, send_array);
+
+
+	if(m_counter - Tx_pcounter > 10){
+	  Tx_pcounter = m_counter;
+	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
+		  HAL_UART_Transmit(&huart6, send_array, 12, 10);
+	  }else{
+			for(int i=0; i<4; i++){
+			  send_array[3*i] = 250 + i;
+			  send_array[3*i + 1] = 0;
+			  send_array[3*i + 2] = 50;
+			}
+			HAL_UART_Transmit(&huart6, send_array, 12, 10);
+	  }
+	  HAL_UART_Transmit(&huart6, &Odo_ID, 1, 10);
+	  if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
+		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	  }
+
+	  position = rxData[1] + rxData[2]*200 - 20000;
+	}else{}
+
+
+//	  if(m_counter - Ltika_pcounter > 1000){
+//	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//	  	Ltika_pcounter = m_counter;
+//	  }else{}
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -160,6 +266,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -277,7 +417,59 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspeed, float motor_rate){
+	goal_degree = goal_degree % 360;
+	if(goal_degree < 0){goal_degree += 360;}
 
+//    int roll_speed;
+//	gyro_degree = gyro_degree % 360;
+//	if(gyro_degree < 0){gyro_degree += 360;}
+
+    int roll_speed;
+    if(gyro_degree > 180){gyro_degree -= 360;}
+    else if(gyro_degree <-180){gyro_degree += 360;}
+    else{}
+
+
+    if (gyro_degree > 0){
+        roll_speed = -10 + (-gyro_degree * 3);
+        if (gyro_degree < 6){
+            roll_speed = 0;
+        }
+        if (roll_speed < -150){
+            roll_speed = -150;
+        }
+    }else if (gyro_degree < 0){
+        roll_speed = 10 + (-gyro_degree * 3);
+        if (gyro_degree > -6){
+            roll_speed = 0;
+        }
+        if (roll_speed > 150){
+            roll_speed = 150;
+        }
+    }else{
+        roll_speed = 0;
+    }
+
+
+	int conv_degree = -goal_degree + 45;
+	if(conv_degree < 0){conv_degree = conv_degree + 360;}
+
+	for(int i=0; i<4; i++){
+		mtrspeed[i] = goal_speed * sin((conv_degree + 90.0*i) / 180.0 * 3.1415);
+		mtrspeed[i] = (mtrspeed[i] * motor_rate) + (roll_speed * (1 - motor_rate));
+	}
+}
+
+void set_array(int16_t* mtrspeed, uint8_t* sendarray){
+	uint16_t conv_mtrspeed[4];
+	for(int i=0; i<4; i++){conv_mtrspeed[i] = mtrspeed[i] + 5000;}
+	for(int i=0; i<4; i++){
+		sendarray[3*i] = 250+i;
+		sendarray[3*i+1] = conv_mtrspeed[i] % 100;
+		sendarray[3*i+2] = conv_mtrspeed[i] / 100;
+	}
+}
 /* USER CODE END 4 */
 
 /**
