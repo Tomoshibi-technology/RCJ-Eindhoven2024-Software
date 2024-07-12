@@ -1,10 +1,10 @@
 ../Core/Src/main.cpp:80:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
-../Core/Src/main.cpp:92:5:int main()	10
-../Core/Src/main.cpp:217:6:void SystemClock_Config()	4
-../Core/Src/main.cpp:272:13:void MX_I2C1_Init()	2
-../Core/Src/main.cpp:306:13:void MX_TIM2_Init()	4
-../Core/Src/main.cpp:351:13:void MX_USART6_UART_Init()	2
-../Core/Src/main.cpp:384:13:void MX_GPIO_Init()	1
-../Core/Src/main.cpp:416:6:void speed_set(int, int, int, int16_t*, float)	12
-../Core/Src/main.cpp:460:6:void set_array(int16_t*, uint8_t*)	3
-../Core/Src/main.cpp:475:6:void Error_Handler()	1
+../Core/Src/main.cpp:92:5:int main()	7
+../Core/Src/main.cpp:227:6:void SystemClock_Config()	4
+../Core/Src/main.cpp:282:13:void MX_I2C1_Init()	2
+../Core/Src/main.cpp:316:13:void MX_TIM2_Init()	4
+../Core/Src/main.cpp:361:13:void MX_USART6_UART_Init()	2
+../Core/Src/main.cpp:394:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:426:6:void speed_set(int, int, int, int16_t*, float)	12
+../Core/Src/main.cpp:470:6:void set_array(int16_t*, uint8_t*)	3
+../Core/Src/main.cpp:485:6:void Error_Handler()	1

@@ -59,8 +59,9 @@ uint8_t p_wrtptB = 0;
 uint8_t p_rdptB = 0;
 
 uint8_t rx_check = 0;
-uint8_t stop_counter = 0;
-uint8_t error_counter = 0;
+uint8_t tx_check = 1;
+uint16_t stop_counter = 0;
+uint16_t error_counter = 0;
 
 long totalAng = 0;
 long ptotalAng = 0;
@@ -74,6 +75,7 @@ uint16_t send_position = 20000;
 volatile uint32_t counter;
 uint64_t u_counter;
 uint16_t dtime;
+uint64_t buf_pcounter;
 
 /* USER CODE END PV */
 
@@ -85,7 +87,7 @@ static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint8_t* stop_counter, uint8_t* error_counter);
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter);
 uint8_t readID();
 int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size);
 /* USER CODE END PFP */
@@ -148,14 +150,14 @@ int main(void)
   uint8_t ANGLE_ADDR = 0x0E;
   uint8_t ID;
 
-  uint32_t d_pcounter, Ltika_pcounter, buf_pcounter;
+  uint64_t d_pcounter, Ltika_pcounter;
   d_pcounter = Ltika_pcounter = readCounter();
 
   if(readID() < 2){
 	  ID = readID();//自身のID
   }else{
 	  while(1){
-		  if(readCounter() - Ltika_pcounter > 10000){
+		  if(readCounter() - Ltika_pcounter > 100000){
 		  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	    	Ltika_pcounter = readCounter();
 		  }else{}
@@ -178,7 +180,7 @@ int main(void)
 	HAL_I2C_Master_Receive(&hi2c1, AS5600_ADDR, rxBufA, 2, 10);
 
 	dtime = readCounter() - d_pcounter;
-	d_pcounter = d_pcounter + dtime;
+	d_pcounter += dtime;
 
 	Angle = rxBufA[0]*256 + rxBufA[1];
 
@@ -202,9 +204,9 @@ int main(void)
 
 	readBuf(&huart2, rxBufB, 128, &rx_check, ID, &p_wrtptB, &p_rdptB, &stop_counter, &error_counter);
 
-	if(rx_check == 1){buf_pcounter = readCounter(); rx_check = 0;}
+	if(rx_check == 1){buf_pcounter = readCounter(); rx_check = 0; tx_check = 0;}
 
-	if((u_counter - buf_pcounter) > 800){
+	if((readCounter() - buf_pcounter) > 500 && tx_check == 0){
 		send_position = position + 20000;
 		send_array[0] = 254;
 		send_array[1] = send_position % 200;
@@ -212,6 +214,7 @@ int main(void)
 
 		if(HAL_UART_Transmit(&huart2, send_array, 3, 1) == HAL_OK){
 			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		tx_check = 1;
 		}
 	}
 
@@ -229,10 +232,12 @@ int main(void)
 //	}
 
 
+//Lチカ部
 //	if(readCounter() - Ltika_pcounter > 1000000){
 //		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 //		Ltika_pcounter = readCounter();
 //	}else{}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -460,7 +465,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint8_t* stop_counter, uint8_t* error_counter){
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter){
 	int wrt_pt = uart->hdmarx->Instance->CNDTR;
 	wrt_pt= buf_size - wrt_pt;
 	int rd_pt;
@@ -469,6 +474,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてない=追い越されてない
 			if(wrt_pt != *p_wrtpt){//wrt_ptが進んだ=受信した
 //正常
+				*stop_counter = 0;
 				rd_pt = *p_rdpt;
 			}else{//wrt_ptが進んでない=受信してない
 //受信してない
@@ -477,23 +483,32 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 			}
 		}else{//p_rdptが書き換えられた=追い越された
 //追い越された
+			(*error_counter)++;
 			rd_pt = wrt_pt - 40;
 				if(rd_pt < 0){rd_pt += buf_size;}
-			(*error_counter)++;
 		}
 	}else{//wrtに追い付かれた,追い付いた
 		int front_pt = wrt_pt + 1;
 			if(front_pt>buf_size-1){front_pt -= buf_size;}
-		if(front_pt == 255){//追い付いた
+
+		if(buf[front_pt] == 255){
+//追い付いた
+			(*stop_counter)++;
 			rd_pt = *p_rdpt;
-		}else{//追い付かれた
+		}else{
+//追い付かれた
+			(*error_counter)++;
 			rd_pt = wrt_pt - 40;
 				if(rd_pt < 0){rd_pt += buf_size;}
-			(*error_counter)++;
 		}
 	}
 
+	if(*stop_counter > 65500){*stop_counter = 65500;}
+	if(*error_counter > 65500){*error_counter = 65500;}
+
+//特別
 	*data = 0;
+//特別
 
 	while(1){
 		int dif_pt = wrt_pt - rd_pt;

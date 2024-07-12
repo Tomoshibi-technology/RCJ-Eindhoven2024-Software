@@ -59,7 +59,7 @@ int16_t trgt_speed = 0;
 int16_t trgt_degree = 0;
 
 uint8_t rxData[3]={};
-int16_t position;
+int16_t position[2];
 
 uint16_t dtime;
 /* USER CODE END PV */
@@ -121,45 +121,79 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_UART_Transmit(&huart6, send_array, 12, 10);
 
-
   HAL_Delay(1000);
 
-  while (!ready) {
-    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28<< 1, 10, 1000) == HAL_OK) {
-      ready = 1;
-    } else {
-    	ready = 0;
-    	HAL_Delay(100);
-    	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-    }
-  }
+//  while (!ready) {
+//    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28<< 1, 10, 1000) == HAL_OK) {
+//      ready = 1;
+//    } else {
+//    	ready = 0;
+//    	HAL_Delay(100);
+//    	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+//    }
+//  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  uint32_t Ltika_pcounter = m_counter;
+
+  uint32_t Ltika_pcounter = m_counter;
   uint32_t set_pcounter = m_counter;
   uint32_t Tx_pcounter = m_counter;
   uint32_t d_pcounter = m_counter;
 
-  uint8_t Odo_ID = 248;
+  uint8_t OdoX_ID = 248;
+  uint8_t OdoY_ID = 249;
+
+  int goal_position[2] = {1000, 1000};
+  int cur_position_rec[2];
+  float cur_position_pol[2];
 
 
+//  unsigned char address = 0x28;
+//  BNO055 bno055(hi2c1,address);
+//  QUATERNION q;
+//  EULAR e;
+//  HAL_Delay(50);
 
-  unsigned char address = 0x28;
-  BNO055 bno055(hi2c1,address);
-  QUATERNION q;
-  EULAR e;
   while (1)
   {
 	dtime = m_counter - d_pcounter;
 	d_pcounter = m_counter;
 
+//x座標を取る
+	HAL_UART_Transmit(&huart6, &OdoX_ID, 1, 10);
+	if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
+	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	}
+	position[0] = rxData[1] + rxData[2]*200 - 20000;
 
-	e = bno055.get_eular();
-	rotate = -1*(e.z/3.1415)*180;
-	rotate = (int)rotate;
+//y座標を取る
+	HAL_UART_Transmit(&huart6, &OdoY_ID, 1, 10);
+	if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
+	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	}
+	position[1] = rxData[1] + rxData[2]*200 - 20000;
 
+//回転を取る
+//	e = bno055.get_eular();
+//	rotate = -1*(e.z/3.1415)*180;
+//	rotate = (int)rotate;
+	rotate = 0;
+
+//目標値をとる
+	for(int i=0; i<2; i++){cur_position_rec[i] = goal_position[i] - position[i];}
+
+//極座標に変換
+
+
+//極座標に返還
+	if(cur_position > 0){trgt_speed = 100;}
+	else if(cur_position < 0){trgt_speed = -100;}
+	else{trgt_speed = 0;}
+
+	trgt_degree = 0;
 
 
 //	if(m_counter - set_pcounter > 10){
@@ -176,33 +210,27 @@ int main(void)
 //	}else{}
 
 
+//モーターに出させるスピードを算出
 	speed_set(rotate, trgt_speed, trgt_degree, MTRS, 0.7);
+
+//送る行列を算出
 	set_array(MTRS, send_array);
 
-
-	if(m_counter - Tx_pcounter > 10){
-	  Tx_pcounter = m_counter;
-	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
-		  HAL_UART_Transmit(&huart6, send_array, 12, 10);
-	  }else{
-			for(int i=0; i<4; i++){
-			  send_array[3*i] = 250 + i;
-			  send_array[3*i + 1] = 0;
-			  send_array[3*i + 2] = 50;
-			}
-			HAL_UART_Transmit(&huart6, send_array, 12, 10);
-	  }
-	  HAL_UART_Transmit(&huart6, &Odo_ID, 1, 10);
-	  if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
-		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-	  }
-
-	  position = rxData[1] + rxData[2]*200 - 20000;
-	}else{}
+//モーターに送る
+	if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
+	  HAL_UART_Transmit(&huart6, send_array, 12, 10);
+	}else{
+		for(int i=0; i<4; i++){
+		  send_array[3*i] = 250 + i;
+		  send_array[3*i + 1] = 210;
+		  send_array[3*i + 2] = 210;
+		}
+		HAL_UART_Transmit(&huart6, send_array, 12, 10);
+	}
 
 
 //	  if(m_counter - Ltika_pcounter > 1000){
-//	  	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//	  	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
 //	  	Ltika_pcounter = m_counter;
 //	  }else{}
 
