@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -83,13 +83,16 @@ int16_t ledPos2 = 0;
 uint8_t sendArray[8] = {255, 255, 0, 0, 0, 0, 0, 0};
 uint16_t degree = 0;
 
-uint8_t ready = 0 ;
+uint8_t ready = 0;
 int16_t gyro;
+
+uint8_t ID = 0;
 
 uint32_t m = 0;
 
 static int16_t i = 8;
 static int16_t moveRotation = 0;
+
 
 
 
@@ -110,7 +113,7 @@ static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void get_position(uint8_t ID);
+void get_position(uint8_t servoID);
 void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 
 
@@ -126,11 +129,14 @@ void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
-	if(htim == &htim3){
-		NeopixelTape.execute();
-	}
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim3)
+  {
+    NeopixelTape.execute();
+  }
 }
+
 
 
 
@@ -178,18 +184,31 @@ int main(void)
   /* USER CODE BEGIN 2 */
   NeopixelTape.init();
 
+  if(HAL_GPIO_ReadPin(dipsw1_GPIO_Port, dipsw1_Pin) == 1){
+	  ID = 1;
+  }else if(HAL_GPIO_ReadPin(dipsw2_GPIO_Port, dipsw2_Pin) == 1){
+	  ID = 2;
+  }else if(HAL_GPIO_ReadPin(dipsw3_GPIO_Port, dipsw3_Pin) == 1){
+	  ID = 3;
+  }else {
+	  while(1);
+  }
+
   HAL_UART_Receive_DMA(&huart2, rxBuf, sizeof(rxBuf));
   HAL_GPIO_WritePin(servosw_GPIO_Port, servosw_Pin, GPIO_PIN_SET);
   HAL_Delay(1000);
 
-  while (!ready) {
-    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28<< 1, 10, 1000) == HAL_OK) {
+  while (!ready)
+  {
+    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28 << 1, 10, 1000) == HAL_OK)
+    {
       ready = 1;
-    } else {
+    }
+    else
+    {
       HAL_Delay(100);
     }
   }
-
 
 
 
@@ -205,7 +224,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   unsigned char address = 0x28;
-  BNO055 bno055(hi2c1,address);
+  BNO055 bno055(hi2c1, address);
   EULAR e;
 
 
@@ -222,92 +241,111 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	    e = bno055.get_eular();
-	    gyro = (e.z/M_PI)*180;
+    e = bno055.get_eular();
+    gyro = (e.z / M_PI) * 180;
 
-	    ledPos0 = (-gyro + ((servoPos0 % 4096 + 4096) % 4096) * 360 / 4096 + 360) % 360;
-	    ledPos2 = (ledPos0 + ((servoPos2 % 4096 + 4096) % 4096) * 360 / 4096) % 360;
+    ledPos0 = (-gyro + ((servoPos0 % 4096 + 4096) % 4096) * 360 / 4096 + 360) % 360;
+    ledPos2 = (ledPos0 + ((servoPos2 % 4096 + 4096) % 4096) * 360 / 4096) % 360;
 
-	    get_position(0);
-	    get_position(2);
+    get_position(0);
+    get_position(2);
 
-	    if(HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 0){
-		    servo0.moveCont(1500, 8191, servoPos0);
-		    servo2.moveCont(1500, 8191, servoPos2);
+    if (HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 0)
+    {
+      servo0.moveCont(1500, 8191, servoPos0);
+      servo2.moveCont(1500, 8191, servoPos2);
 
-		    if(i != 0){
-		    	i += 8;
-		    	if(i >= 180){
-		    		i -= 360;
-		    	}
-		    }
+      if (i != 0)
+      {
+        i += 8;
+        if (i >= 180)
+        {
+          i -= 360;
+        }
+      }
 
-		    moveRotation = calc.calcRotation(i, gyro);
+      moveRotation = calc.calcRotation(i, gyro);
 
-		    if(moveRotation > 0){
-		    	moveRotation += 10;
-		    }
-		    if(moveRotation < 0){
-		    	moveRotation -= 10;
-		    }
+      if (moveRotation > 0)
+      {
+        moveRotation += 10;
+      }
+      if (moveRotation < 0)
+      {
+        moveRotation -= 10;
+      }
 
-			sendData(0, 0, moveRotation);
+      sendData(0, 0, moveRotation);
 
-			for(uint8_t led = 0; led < 16; led++){
-				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
-				NeopixelTape.show();
-			  }
-			for(uint8_t led = 32; led < 48; led++){
-				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
-				NeopixelTape.show();
-			}
-	    }else if(HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 1){
-		    servo0.moveCont(1500, 0, servoPos0);
-		    servo2.moveCont(1500, 0, servoPos2);
+      for (uint8_t led = 0; led < 16; led++)
+      {
+        NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
+        NeopixelTape.show();
+      }
+      for (uint8_t led = 32; led < 48; led++)
+      {
+        NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
+        NeopixelTape.show();
+      }
+    }
+    else if (HAL_GPIO_ReadPin(slidesw1_GPIO_Port, slidesw1_Pin) == 1 && HAL_GPIO_ReadPin(slidesw2_GPIO_Port, slidesw2_Pin) == 1)
+    {
+      servo0.moveCont(1500, 0, servoPos0);
+      servo2.moveCont(1500, 0, servoPos2);
 
-		    if(i != 8){
-		    	i -= 8;
-		    	if(i < -180){
-		    		i += 360;
-		    	}
-		    }
+      if (i != 8)
+      {
+        i -= 8;
+        if (i < -180)
+        {
+          i += 360;
+        }
+      }
 
-		    moveRotation = calc.calcRotation(i, gyro);
+      moveRotation = calc.calcRotation(i, gyro);
 
-		    if(moveRotation > 0){
-		    	moveRotation += 10;
-		    }
-		    if(moveRotation < 0){
-		    	moveRotation -= 10;
-		    }
+      if (moveRotation > 0)
+      {
+        moveRotation += 10;
+      }
+      if (moveRotation < 0)
+      {
+        moveRotation -= 10;
+      }
 
-			sendData(0, 0, moveRotation);
+      sendData(0, 0, moveRotation);
 
-			for(uint8_t led = 0; led < 16; led++){
-				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
-				NeopixelTape.show();
-			  }
-			for(uint8_t led = 32; led < 48; led++){
-				NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
-				NeopixelTape.show();
-			}
-	    }else{
-		    servo0.moveCont(1000, 0, servoPos0);
-		    servo2.moveCont(1000, 0, servoPos2);
-	    	sendData(0, 0, 0);
-			for(uint8_t led = 0; led < 16; led++){
-				NeopixelTape.set_hsv(led, 0, 0, 0);
-				NeopixelTape.show();
-			  }
-			for(uint8_t led = 32; led < 48; led++){
-				NeopixelTape.set_hsv(led, 0, 0, 0);
-				NeopixelTape.show();
-			}
-	    }
+      for (uint8_t led = 0; led < 16; led++)
+      {
+        NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+        NeopixelTape.show();
+      }
+      for (uint8_t led = 32; led < 48; led++)
+      {
+        NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+        NeopixelTape.show();
+      }
+    }
+    else
+    {
+      servo0.moveCont(1000, 0, servoPos0);
+      servo2.moveCont(1000, 0, servoPos2);
+      sendData(0, 0, 0);
+      for (uint8_t led = 0; led < 16; led++)
+      {
+        NeopixelTape.set_hsv(led, 0, 0, 0);
+        NeopixelTape.show();
+      }
+      for (uint8_t led = 32; led < 48; led++)
+      {
+        NeopixelTape.set_hsv(led, 0, 0, 0);
+        NeopixelTape.show();
+      }
+    }
+
+    m++;
 
 
-
-		m++;
 
 
 
@@ -583,23 +621,35 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : dipsw3_Pin dipsw2_Pin dipsw1_Pin */
+  GPIO_InitStruct.Pin = dipsw3_Pin|dipsw2_Pin|dipsw1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : dipsw4_Pin dipsw5_Pin */
+  GPIO_InitStruct.Pin = dipsw4_Pin|dipsw5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void get_position(uint8_t ID)
+void get_position(uint8_t servoID)
 {
-	static int16_t inst_pos0 = 0;
-	static int16_t inst_pos1 = 0;
-	static int16_t inst_pos2 = 0;
-	static int16_t inst_pos3 = 0;
-	static uint8_t index = 0;
-	uint8_t checksum = 0;
-	uint8_t read[15] = {0};
-	uint8_t position[6] = {0};
+  static int16_t inst_pos0 = 0;
+  static int16_t inst_pos1 = 0;
+  static int16_t inst_pos2 = 0;
+  static int16_t inst_pos3 = 0;
+  static uint8_t index = 0;
+  uint8_t checksum = 0;
+  uint8_t read[15] = {0};
+  uint8_t position[6] = {0};
 
-  switch (ID)
+  switch (servoID)
   {
   case 0:
     servo0.send();
@@ -655,41 +705,42 @@ void get_position(uint8_t ID)
   }
   if (checksum == position[5] && position[0] == 1)
   {
-	inst_pos1 = position[3] + position[4] * 256;
-	servoPos1 = servo1.calculate_position(inst_pos1);
+    inst_pos1 = position[3] + position[4] * 256;
+    servoPos1 = servo1.calculate_position(inst_pos1);
   }
   if (checksum == position[5] && position[0] == 2)
   {
-	inst_pos2 = position[3] + position[4] * 256;
-	servoPos2 = servo2.calculate_position(inst_pos2);
+    inst_pos2 = position[3] + position[4] * 256;
+    servoPos2 = servo2.calculate_position(inst_pos2);
   }
   if (checksum == position[5] && position[0] == 3)
   {
-	inst_pos3 = position[3] + position[4] * 256;
-	servoPos3 = servo3.calculate_position(inst_pos3);
+    inst_pos3 = position[3] + position[4] * 256;
+    servoPos3 = servo3.calculate_position(inst_pos3);
   }
 }
 
-void sendData(uint16_t angle, uint8_t speed, int16_t rotation){
-	  uint8_t checksum = 0;
+void sendData(uint16_t angle, uint8_t speed, int16_t rotation)
+{
+  uint8_t checksum = 0;
 
-	  rotation += 360;
+  rotation += 360;
 
-	  sendArray[2] = angle / 256;
-	  sendArray[3] = angle % 256;
-	  sendArray[4] = speed;
-	  sendArray[5] = rotation / 256;
-	  sendArray[6] = rotation % 256;
+  sendArray[2] = angle / 256;
+  sendArray[3] = angle % 256;
+  sendArray[4] = speed;
+  sendArray[5] = rotation / 256;
+  sendArray[6] = rotation % 256;
 
-	  for (uint8_t i = 2; i < 7; i++)
-	  {
-	    checksum += sendArray[i];
-	  }
-	  checksum = ~checksum;
-	  checksum += 10;
-	  sendArray[7] = checksum;
-	  HAL_UART_Transmit(&huart3, sendArray, 8, 100);
-	  HAL_Delay(1);
+  for (uint8_t i = 2; i < 7; i++)
+  {
+    checksum += sendArray[i];
+  }
+  checksum = ~checksum;
+  checksum += 10;
+  sendArray[7] = checksum;
+  HAL_UART_Transmit(&huart3, sendArray, 8, 100);
+  HAL_Delay(1);
 }
 
 

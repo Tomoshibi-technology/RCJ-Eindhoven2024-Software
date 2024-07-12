@@ -67,6 +67,16 @@ void Error_Handler(void);
 #define slidesw1_GPIO_Port GPIOB
 #define slidesw2_Pin GPIO_PIN_15
 #define slidesw2_GPIO_Port GPIOB
+#define dipsw3_Pin GPIO_PIN_8
+#define dipsw3_GPIO_Port GPIOA
+#define dipsw2_Pin GPIO_PIN_11
+#define dipsw2_GPIO_Port GPIOA
+#define dipsw1_Pin GPIO_PIN_12
+#define dipsw1_GPIO_Port GPIOA
+#define dipsw4_Pin GPIO_PIN_10
+#define dipsw4_GPIO_Port GPIOC
+#define dipsw5_Pin GPIO_PIN_11
+#define dipsw5_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 
