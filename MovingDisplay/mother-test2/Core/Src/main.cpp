@@ -21,7 +21,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "BNO055.hpp"
+#include "BNO055.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 /* USER CODE END Includes */
 
@@ -48,20 +51,29 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
-uint8_t ready = 0 ;
-float rotate;
+//uint8_t ready = 0 ;
 
 uint32_t m_counter;
 int16_t MTRS[4]={0, 0, 0, 0};
-uint8_t send_array[12] = {250, 0, 50, 251, 0, 50, 252, 0, 50, 253, 0, 50};
+uint8_t send_array[12] = {250, 210, 210, 251, 210, 210, 252, 210, 210, 253, 210, 210};
 
+uint8_t rxDataX[3]={};
+uint8_t rxDataY[3]={};
+
+int16_t position[2] = {0, 0};
+float rotate;
+
+int16_t goal_position[2] = {0, 0};
 int16_t trgt_speed = 0;
 int16_t trgt_degree = 0;
 
-uint8_t rxData[3]={};
-int16_t position[2];
+int16_t cur_position_rec[2];
+int16_t cur_position_pol[2];
+
 
 uint16_t dtime;
+
+int roll_speed;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,17 +133,15 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_UART_Transmit(&huart6, send_array, 12, 10);
 
-  HAL_Delay(1000);
+  BNO055 bno055(&hi2c1);
 
-//  while (!ready) {
-//    if (HAL_I2C_IsDeviceReady(&hi2c1, 0x28<< 1, 10, 1000) == HAL_OK) {
-//      ready = 1;
-//    } else {
-//    	ready = 0;
-//    	HAL_Delay(100);
-//    	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-//    }
-//  }
+  if (!bno055.begin()) {
+	  // センサ初期化失敗時の処理
+	  while (1){HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);};
+  }
+
+  float heading, roll, pitch;
+  HAL_Delay(1000);
 
   /* USER CODE END 2 */
 
@@ -139,100 +149,79 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   uint32_t Ltika_pcounter = m_counter;
-  uint32_t set_pcounter = m_counter;
-  uint32_t Tx_pcounter = m_counter;
   uint32_t d_pcounter = m_counter;
 
-  uint8_t OdoX_ID = 248;
-  uint8_t OdoY_ID = 249;
+  uint8_t OdoX_ID[3] = {248, 210, 210};
+  uint8_t OdoY_ID[3] = {249, 210, 210};
 
-  int goal_position[2] = {1000, 1000};
-  int cur_position_rec[2];
-  float cur_position_pol[2];
-
-
-//  unsigned char address = 0x28;
-//  BNO055 bno055(hi2c1,address);
-//  QUATERNION q;
-//  EULAR e;
-//  HAL_Delay(50);
+//  int16_t cur_position_rec[2];
+//  int16_t cur_position_pol[2];
 
   while (1)
   {
 	dtime = m_counter - d_pcounter;
 	d_pcounter = m_counter;
 
+//回転を取?��?
+	bno055.getEulerAngles(heading, roll, pitch);
+	rotate = (int)heading;
+
 //x座標を取る
-	HAL_UART_Transmit(&huart6, &OdoX_ID, 1, 10);
-	if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
-	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-	}
-	position[0] = rxData[1] + rxData[2]*200 - 20000;
+
+		HAL_UART_Transmit(&huart6, OdoX_ID, 3, 1);
+		if(HAL_UART_Receive(&huart6, rxDataX, 3, 1) == HAL_OK){
+		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+		}else{}
+		position[0] = rxDataX[1] + rxDataX[2]*200 - 20000;
+
 
 //y座標を取る
-	HAL_UART_Transmit(&huart6, &OdoY_ID, 1, 10);
-	if(HAL_UART_Receive(&huart6, rxData, 3, 10) == HAL_OK){
-	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-	}
-	position[1] = rxData[1] + rxData[2]*200 - 20000;
+		HAL_UART_Transmit(&huart6, OdoY_ID, 3, 1);
+		if(HAL_UART_Receive(&huart6, rxDataY, 3, 1) == HAL_OK){
+		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+		}else{}
+		HAL_Delay(10);
+		position[1] = rxDataY[1] + rxDataY[2]*200 - 20000;
 
-//回転を取る
-//	e = bno055.get_eular();
-//	rotate = -1*(e.z/3.1415)*180;
-//	rotate = (int)rotate;
-	rotate = 0;
-
-//目標値をとる
+//移動距離をと?��?
 	for(int i=0; i<2; i++){cur_position_rec[i] = goal_position[i] - position[i];}
 
-//極座標に変換
+//移動距離を極座標に
+	cur_position_pol[0] = pow(pow(cur_position_rec[0], 2) + pow(cur_position_rec[1], 2), 0.5);
+	cur_position_pol[1] = atan2(cur_position_rec[0], cur_position_rec[1]) / 3.1415 * 180.0;
 
-
-//極座標に返還
-	if(cur_position > 0){trgt_speed = 100;}
-	else if(cur_position < 0){trgt_speed = -100;}
+//移動位置->移動スピ�??��?��?
+	if(cur_position_pol[0] > 25){trgt_speed = 200;}
+	else if(cur_position_pol[0] < -25){trgt_speed = -200;}
 	else{trgt_speed = 0;}
 
-	trgt_degree = 0;
+	trgt_degree = cur_position_pol[1];
 
 
-//	if(m_counter - set_pcounter > 10){
-//	  set_pcounter = m_counter;
-//	  trgt_degree = trgt_degree + 1;
-//
-//	  if(trgt_speed < 30){trgt_speed = trgt_speed + 10;}
-//	  else{trgt_speed = 500;}
-//
-//	  if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 0){
-//		  trgt_degree = 0;
-//		  trgt_speed = 0;
-//	  }
-//	}else{}
-
-
-//モーターに出させるスピードを算出
+//移動スピ�??��?��?->?��?モーターのスピ�??��?��?
 	speed_set(rotate, trgt_speed, trgt_degree, MTRS, 0.7);
 
-//送る行列を算出
+//?��?モーターのスピ�??��?��?->送る行�??
 	set_array(MTRS, send_array);
 
-//モーターに送る
+////モーターに送る
 	if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
-	  HAL_UART_Transmit(&huart6, send_array, 12, 10);
-	}else{
+	  HAL_UART_Transmit(&huart6, send_array, 12, 1);
+	}else{//スタートスイ?��?チがオフ�??��?��?
 		for(int i=0; i<4; i++){
 		  send_array[3*i] = 250 + i;
 		  send_array[3*i + 1] = 210;
 		  send_array[3*i + 2] = 210;
 		}
-		HAL_UART_Transmit(&huart6, send_array, 12, 10);
+		HAL_UART_Transmit(&huart6, send_array, 12, 1);
 	}
 
 
-//	  if(m_counter - Ltika_pcounter > 1000){
-//	  	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-//	  	Ltika_pcounter = m_counter;
-//	  }else{}
+//Lチカ
+	if(m_counter - Ltika_pcounter > 1000){
+	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	Ltika_pcounter = m_counter;
+	}else{}
 
 
     /* USER CODE END WHILE */
@@ -449,31 +438,28 @@ void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspe
 	goal_degree = goal_degree % 360;
 	if(goal_degree < 0){goal_degree += 360;}
 
-//    int roll_speed;
-//	gyro_degree = gyro_degree % 360;
-//	if(gyro_degree < 0){gyro_degree += 360;}
 
-    int roll_speed;
+//    int roll_speed;
     if(gyro_degree > 180){gyro_degree -= 360;}
     else if(gyro_degree <-180){gyro_degree += 360;}
     else{}
 
 
     if (gyro_degree > 0){
-        roll_speed = -10 + (-gyro_degree * 3);
-        if (gyro_degree < 6){
-            roll_speed = 0;
-        }
-        if (roll_speed < -150){
-            roll_speed = -150;
+        roll_speed = gyro_degree * 50;
+//        if (gyro_degree < 2){
+//            roll_speed = 0;
+//        }
+        if (roll_speed < -100){
+            roll_speed = -100;
         }
     }else if (gyro_degree < 0){
-        roll_speed = 10 + (-gyro_degree * 3);
-        if (gyro_degree > -6){
-            roll_speed = 0;
-        }
-        if (roll_speed > 150){
-            roll_speed = 150;
+        roll_speed = gyro_degree * 50;
+//        if (gyro_degree > 2){
+//            roll_speed = 0;
+//        }
+        if (roll_speed > 100){
+            roll_speed = 100;
         }
     }else{
         roll_speed = 0;
@@ -485,13 +471,13 @@ void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspe
 
 	for(int i=0; i<4; i++){
 		mtrspeed[i] = goal_speed * sin((conv_degree + 90.0*i) / 180.0 * 3.1415);
-		mtrspeed[i] = (mtrspeed[i] * motor_rate) + (roll_speed * (1 - motor_rate));
+		mtrspeed[i] = (mtrspeed[i] * motor_rate) + (roll_speed * (1.0 - motor_rate));
 	}
 }
 
 void set_array(int16_t* mtrspeed, uint8_t* sendarray){
 	uint16_t conv_mtrspeed[4];
-	for(int i=0; i<4; i++){conv_mtrspeed[i] = mtrspeed[i] + 5000;}
+	for(int i=0; i<4; i++){conv_mtrspeed[i] = 10000 - (mtrspeed[i] + 5000);}
 	for(int i=0; i<4; i++){
 		sendarray[3*i] = 250+i;
 		sendarray[3*i+1] = conv_mtrspeed[i] % 100;

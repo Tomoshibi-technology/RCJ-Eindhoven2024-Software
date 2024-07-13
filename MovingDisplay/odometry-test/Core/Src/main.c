@@ -204,19 +204,23 @@ int main(void)
 
 	readBuf(&huart2, rxBufB, 128, &rx_check, ID, &p_wrtptB, &p_rdptB, &stop_counter, &error_counter);
 
-	if(rx_check == 1){buf_pcounter = readCounter(); rx_check = 0; tx_check = 0;}
+	if(rx_check == 1){
+		buf_pcounter = readCounter();
+		rx_check = 0;
+		tx_check = 0;
+	}else{}
 
 	if((readCounter() - buf_pcounter) > 500 && tx_check == 0){
 		send_position = position + 20000;
-		send_array[0] = 254;
+		send_array[0] = 248+ID;
 		send_array[1] = send_position % 200;
 		send_array[2] = send_position / 200;
 
 		if(HAL_UART_Transmit(&huart2, send_array, 3, 1) == HAL_OK){
 			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		tx_check = 1;
-		}
-	}
+		}else{}
+	}else{}
 
 //	if(rx_check == 1){
 //		send_position = position + 20000;
@@ -484,7 +488,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 		}else{//p_rdptが書き換えられた=追い越された
 //追い越された
 			(*error_counter)++;
-			rd_pt = wrt_pt - 40;
+			rd_pt = wrt_pt - 20;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
 	}else{//wrtに追い付かれた,追い付いた
@@ -498,7 +502,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 		}else{
 //追い付かれた
 			(*error_counter)++;
-			rd_pt = wrt_pt - 40;
+			rd_pt = wrt_pt - 20;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
 	}
@@ -513,7 +517,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 	while(1){
 		int dif_pt = wrt_pt - rd_pt;
 			if(dif_pt < 0){dif_pt += buf_size;}
-		if(dif_pt <= 20){break;}
+		if(dif_pt <= 1){break;}
 
 		rd_pt++;
 			if(rd_pt>buf_size-1){rd_pt -= buf_size;}

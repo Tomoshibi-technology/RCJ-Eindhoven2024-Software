@@ -56,13 +56,13 @@ volatile uint32_t u10_counter;
 //uint32_t callback_pcounter = 0;
 //uint16_t callback_dtime;
 
-uint8_t rxBufA[64]={};
+uint8_t rxBufA[64]={[0 ... 63] = 255};
 uint8_t rxDataA[2]={0,50};
 
-uint8_t rxBufB[128]={};
+uint8_t rxBufB[128]={[0 ... 127] = 255};
 uint8_t rxDataB[2]={0,50};
 
-uint16_t goal_speed= 5000;//目標
+uint16_t goal_speed= 5000;//目�?
 uint16_t now_speed = 5000;//現在速度
 uint16_t dif_speed;//目標と現在の差
 
@@ -95,8 +95,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter);
-int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size);
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter,  uint8_t go_back);
 uint8_t readID();
 /* USER CODE END PFP */
 
@@ -154,6 +153,8 @@ int main(void)
   MX_TIM16_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 0);
+
   HAL_TIM_Base_Start_IT(&htim3);
 
   HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1);
@@ -184,7 +185,6 @@ int main(void)
   HAL_UART_Receive_DMA(&huart1,rxBufA,64);
   HAL_UART_Receive_DMA(&huart2,rxBufB,128);
 
-  HAL_GPIO_WritePin(SHDN_GPIO_Port, SHDN_Pin, 0);
   __HAL_TIM_SET_COMPARE(&htim16, TIM_CHANNEL_1, duty);
 
   while (1)
@@ -196,16 +196,14 @@ int main(void)
 	  d_pcounter = u10_counter;
 
 //if value did not update, alert by LED and motor sound.
-//対策 against DMA did not start correctly
-//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後のがたつきと通信線繋いでないときの動作)
+//対�? against DMA did not start correctly
+//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後�?�がたつきと通信線繋いでな�?とき�?�動�?)
 
-//speed算出
-	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA);
-	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, &p_wrtptB, &p_rdptB, &stop_counterB, &error_counterB);
+//speed算�?�
+	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 10);
+	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, &p_wrtptB, &p_rdptB, &stop_counterB, &error_counterB, 40);
 
 	  goal_speed = rxDataB[0] + rxDataB[1]*100;
-	  	  if(goal_speed > 20200){stop_flag = 0;}//stop command detect
-	  	  else{}
 
 	  now_speed = rxDataA[0] + rxDataA[1]*100;
 
@@ -220,7 +218,7 @@ int main(void)
 		  duty_pcounter = u10_counter;
 	  }else{}
 
-//出力リミット
+//出力リミッ�?
 	  if(duty > 3120){duty = 3120;}
 	  else if(duty < 80){duty = 80;}
 	  else{duty = duty;}
@@ -229,6 +227,8 @@ int main(void)
 	  if(stop_counterA > 1000){stop_flag = 0;}
 	  else if(stop_counterB > 1000){stop_flag = 0;}
 	  else if(HAL_GPIO_ReadPin(SLSW_GPIO_Port, SLSW_Pin) != 1){stop_flag = 0;}
+	  else if(goal_speed > 20200){stop_flag = 0;}//shutdown command detect
+	  else if(u10_counter < 100000){stop_flag = 0;}
 	  else{stop_flag = 1;}
 
 //出力部
@@ -566,40 +566,40 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter){
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter, uint8_t go_back){
 	int wrt_pt = uart->hdmarx->Instance->CNDTR;
 	wrt_pt= buf_size - wrt_pt;
 	int rd_pt;
 
-	if(wrt_pt != *p_rdpt){//wrtに追い付かれてない
-		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてない=追い越されてない
-			if(wrt_pt != *p_wrtpt){//wrt_ptが進んだ=受信した
+	if(wrt_pt != *p_rdpt){//wrtに追�?付かれてな�?
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな�?=追�?越されてな�?
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�?�んだ=受信した
 //正常
 				*stop_counter = 0;
 				rd_pt = *p_rdpt;
-			}else{//wrt_ptが進んでない=受信してない
-//受信してない
+			}else{//wrt_ptが�?�んでな�?=受信してな�?
+//受信してな�?
 				(*stop_counter)++;
 				rd_pt = *p_rdpt;
 			}
-		}else{//p_rdptが書き換えられた=追い越された
-//追い越された
+		}else{//p_rdptが書き換えられた=追�?越された
+//追�?越された
 			(*error_counter)++;
-			rd_pt = wrt_pt - 40;
+			rd_pt = wrt_pt - go_back;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
-	}else{//wrtに追い付かれた,追い付いた
+	}else{//wrtに追�?付かれた,追�?付い�?
 		int front_pt = wrt_pt + 1;
 			if(front_pt>buf_size-1){front_pt -= buf_size;}
 
 		if(buf[front_pt] == 255){
-//追い付いた
+//追�?付い�?
 			(*stop_counter)++;
 			rd_pt = *p_rdpt;
 		}else{
-//追い付かれた
+//追�?付かれた
 			(*error_counter)++;
-			rd_pt = wrt_pt - 40;
+			rd_pt = wrt_pt - go_back;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
 	}
@@ -611,18 +611,20 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 	while(1){
 		int dif_pt = wrt_pt - rd_pt;
 			if(dif_pt < 0){dif_pt += buf_size;}
-		if(dif_pt <= 20){break;}
+		if(dif_pt <= go_back/2){break;}
 
 		rd_pt++;
 			if(rd_pt>buf_size-1){rd_pt -= buf_size;}
 
 		if(buf[rd_pt] == 250+id){
-			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれない,25以上もだめ
+			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな�?,25以上も�?�?
+
 				if(goal_rdpt>buf_size-1){goal_rdpt -= buf_size;}
 			int temp_rdpt = rd_pt;
+
 			buf[rd_pt] = 255;
 
-			for(int i=0; temp_rdpt==goal_rdpt; i++){
+			for(int i=0; i<data_size; i++){
 				temp_rdpt += 1;
 					if(temp_rdpt>buf_size-1){temp_rdpt -= buf_size;}
 
@@ -642,35 +644,6 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 	*p_rdpt = rd_pt;
 //	*p_wrtpt = buf_size - (uart->hdmarx->Instance->CNDTR);
 	*p_wrtpt = wrt_pt;
-}
-
-
-//void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, int id, int go_back){
-//	int index = uart->hdmarx->Instance->CNDTR;
-//	index = buf_size - index;
-//	int indexRead = index - go_back;
-//	if(indexRead < 0){indexRead = indexRead + buf_size;}
-//
-//	while(1){
-//		uint8_t readData = buf[indexRead];
-//		if(readData == 250+id){
-//			for(int i=1; i<=data_size; i++){
-//				int readPoint = indexRead + i;
-//				if(readPoint>buf_size-1){readPoint = readPoint - buf_size;}
-//				data[i-1] = buf[readPoint];
-//			}
-//			break;
-//		}
-//		indexRead++;
-//		if(indexRead>buf_size-1){indexRead = indexRead - buf_size;}
-//		if(indexRead == index){break;}
-//	}
-//}
-
-int readINDEX(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size){
-	int index = uart->hdmarx->Instance->CNDTR;
-	index = buf_size - index;
-	return index;
 }
 
 uint8_t readID(){
