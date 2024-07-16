@@ -1,0 +1,6 @@
+../Core/Src/BNO055.cpp:12:1:BNO055::BNO055(I2C_HandleTypeDef*, uint8_t)	24	static
+../Core/Src/BNO055.cpp:15:6:bool BNO055::begin()	24	static
+../Core/Src/BNO055.cpp:32:6:void BNO055::setMode(uint8_t)	16	static
+../Core/Src/BNO055.cpp:37:6:void BNO055::getEulerAngles(float&, float&, float&)	40	static
+../Core/Src/BNO055.cpp:50:19:HAL_StatusTypeDef BNO055::write(uint8_t, uint8_t*, uint16_t)	40	static
+../Core/Src/BNO055.cpp:54:19:HAL_StatusTypeDef BNO055::read(uint8_t, uint8_t*, uint16_t)	40	static

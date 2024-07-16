@@ -65,7 +65,6 @@ float rotate;
 
 int16_t goal_position[2] = {0, 0};
 int16_t trgt_speed = 0;
-int16_t trgt_degree = 0;
 
 int16_t cur_position_rec[2];
 int16_t cur_position_pol[2];
@@ -74,6 +73,8 @@ int16_t cur_position_pol[2];
 uint16_t dtime;
 
 int roll_speed;
+
+int zero_thr = 25;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,6 +158,9 @@ int main(void)
 //  int16_t cur_position_rec[2];
 //  int16_t cur_position_pol[2];
 
+  int16_t speed;
+  int16_t degree;
+
   while (1)
   {
 	dtime = m_counter - d_pcounter;
@@ -168,20 +172,20 @@ int main(void)
 
 //x座標を取る
 
-		HAL_UART_Transmit(&huart6, OdoX_ID, 3, 1);
-		if(HAL_UART_Receive(&huart6, rxDataX, 3, 1) == HAL_OK){
-		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-		}else{}
-		position[0] = rxDataX[1] + rxDataX[2]*200 - 20000;
+	HAL_UART_Transmit(&huart6, OdoX_ID, 3, 1);
+	if(HAL_UART_Receive(&huart6, rxDataX, 3, 1) == HAL_OK){
+	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	}else{}
+	position[0] = rxDataX[1] + rxDataX[2]*200 - 20000;
 
 
 //y座標を取る
-		HAL_UART_Transmit(&huart6, OdoY_ID, 3, 1);
-		if(HAL_UART_Receive(&huart6, rxDataY, 3, 1) == HAL_OK){
-		  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-		}else{}
-		HAL_Delay(10);
-		position[1] = rxDataY[1] + rxDataY[2]*200 - 20000;
+	HAL_UART_Transmit(&huart6, OdoY_ID, 3, 1);
+	if(HAL_UART_Receive(&huart6, rxDataY, 3, 1) == HAL_OK){
+	  HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	}else{}
+	HAL_Delay(10);
+	position[1] = rxDataY[1] + rxDataY[2]*200 - 20000;
 
 //移動距離をと?��?
 	for(int i=0; i<2; i++){cur_position_rec[i] = goal_position[i] - position[i];}
@@ -191,15 +195,15 @@ int main(void)
 	cur_position_pol[1] = atan2(cur_position_rec[0], cur_position_rec[1]) / 3.1415 * 180.0;
 
 //移動位置->移動スピ�??��?��?
-	if(cur_position_pol[0] > 25){trgt_speed = 200;}
-	else if(cur_position_pol[0] < -25){trgt_speed = -200;}
-	else{trgt_speed = 0;}
+	if(cur_position_pol[0] > zero_thr){speed = trgt_speed;}
+	else if(cur_position_pol[0] < -zero_thr){speed = -trgt_speed;}
+	else{speed = 0;}
 
-	trgt_degree = cur_position_pol[1];
+	degree = cur_position_pol[1];
 
 
 //移動スピ�??��?��?->?��?モーターのスピ�??��?��?
-	speed_set(rotate, trgt_speed, trgt_degree, MTRS, 0.7);
+	speed_set(rotate, speed, degree, MTRS, 0.7);
 
 //?��?モーターのスピ�??��?��?->送る行�??
 	set_array(MTRS, send_array);
@@ -447,20 +451,21 @@ void speed_set(int gyro_degree, int goal_speed, int goal_degree, int16_t* mtrspe
 
     if (gyro_degree > 0){
         roll_speed = gyro_degree * 50;
-//        if (gyro_degree < 2){
-//            roll_speed = 0;
-//        }
-        if (roll_speed < -100){
-            roll_speed = -100;
+        if (gyro_degree < 2){
+            roll_speed = 0;
+        }
+        if (roll_speed > 500){
+            roll_speed = 500;
         }
     }else if (gyro_degree < 0){
         roll_speed = gyro_degree * 50;
-//        if (gyro_degree > 2){
-//            roll_speed = 0;
-//        }
-        if (roll_speed > 100){
-            roll_speed = 100;
+        if (gyro_degree > -2){
+            roll_speed = 0;
         }
+		if (roll_speed < -500){
+			roll_speed = -500;
+        }
+
     }else{
         roll_speed = 0;
     }
