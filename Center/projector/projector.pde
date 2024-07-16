@@ -8,14 +8,16 @@ import ddf.minim.signals.*;
 import ddf.minim.spi.*;
 import ddf.minim.ugens.*;
 
-AudioPlayer performance;
+AudioPlayer performanceA;
+AudioPlayer performanceB;
 AudioPlayer ready;
 AudioPlayer pon;
 Minim minim;
 FFT fft;
 
-String bgm_performance = "LostSky-Fearless.mp3";
-String bgm_ready = "Faint_Dream.mp3";
+String bgm_ready = "Lightrall.mp3";
+String bgm_performanceA = "Colors.mp3";
+String bgm_performanceB = "Elektronomia.mp3";
 String bgm_pon = "button.mp3";
 
 
@@ -55,7 +57,8 @@ void setup() {
 	;
 
 	minim = new Minim(this);
-  performance = minim.loadFile(bgm_performance,1024);
+  performanceA = minim.loadFile(bgm_performanceA,1024);
+  performanceB = minim.loadFile(bgm_performanceB,1024);
 	ready = minim.loadFile(bgm_ready,1024);
 	pon = minim.loadFile(bgm_pon,1024);
 
@@ -80,7 +83,7 @@ void draw() {
 
 	//　時間経過
 	if(toggle1 && !(startflg)){
-		performance.play();
+		performanceA.play();
 		start_millis = millis();
 		startflg = true;
   }
