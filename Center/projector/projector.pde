@@ -59,7 +59,7 @@ void setup() {
 	ready = minim.loadFile(bgm_ready,1024);
 	pon = minim.loadFile(bgm_pon,1024);
 
-	fft = new FFT(performance.bufferSize(), performance.sampleRate());
+	//fft = new FFT(performance.bufferSize(), performance.sampleRate());
 }
 
 boolean startflg = false;
@@ -188,5 +188,3 @@ void draw() {
 		// }
 	}
 }
-
-
