@@ -16,8 +16,8 @@ Minim minim;
 FFT fft;
 
 String bgm_ready = "Lightrall.mp3";
-String bgm_performanceA = "Colors.mp3";
-String bgm_performanceB = "Elektronomia.mp3";
+String bgm_performanceA = "parformanceA.wav";
+String bgm_performanceB = "parformanceB.wav";
 String bgm_pon = "button.mp3";
 
 
