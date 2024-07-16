@@ -68,7 +68,7 @@ void setup() {
 boolean startflg = false;
 
 int start_millis;
-int beat_millis = 17; // 1000/66
+int beat_millis = 17 ; // 1000/66
 long pre_millis = 0;
 
 int raw_count = 0;
@@ -93,10 +93,10 @@ void draw() {
 		if(pre_millis + beat_millis < now_millis){
 			if(raw_count%32 == 0){
 				beat_count++;
-				// pon.play();
-				// pon.rewind();
-				// print("__________________");
-				// println(beat_count);
+				 pon.play();
+				 pon.rewind();
+				 print("__________________");
+				 println(beat_count);
 			}
 			pre_millis += beat_millis;
 			raw_count++;
