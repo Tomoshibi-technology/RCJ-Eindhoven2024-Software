@@ -35,7 +35,7 @@ void setup() {
 	fullScreen();
   frameRate(66);
 
-	int available_serialport = 1; // シリアル検索プログラムで調べたシリアルポートの番号に変更s
+	int available_serialport = 0; // シリアル検索プログラムで調べたシリアルポートの番号に変更s
 	String arduinoPort = Serial.list()[available_serialport];
 	myPort = new Serial(this, arduinoPort, 115200); // シリアルポートの設定
 	
