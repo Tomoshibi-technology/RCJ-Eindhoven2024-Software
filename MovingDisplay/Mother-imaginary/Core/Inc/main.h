@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define LED0_GPIO_Port GPIOB
 #define STRTSW_Pin GPIO_PIN_13
 #define STRTSW_GPIO_Port GPIOB
+#define TACTSW0_Pin GPIO_PIN_14
+#define TACTSW0_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -1,6 +1,6 @@
 "./Core/Src/BNO055.o"
 "./Core/Src/main.o"
-"./Core/Src/movement.o"
+"./Core/Src/performance.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"
 "./Core/Src/syscalls.o"

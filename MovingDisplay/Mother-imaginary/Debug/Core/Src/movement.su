@@ -1,4 +1,0 @@
-../Core/Src/movement.cpp:4:1:MOVEMENT::MOVEMENT(uint32_t*)	16	static
-../Core/Src/movement.cpp:9:6:void MOVEMENT::set_first_mtime()	16	static
-../Core/Src/movement.cpp:13:6:void MOVEMENT::set_movement()	32	static
-../Core/Src/movement.cpp:27:6:void MOVEMENT::get_movement(int16_t*)	24	static

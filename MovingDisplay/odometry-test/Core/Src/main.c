@@ -199,7 +199,7 @@ int main(void)
 	ptotalAng = totalAng;
 	pAngle = Angle;
 
-	position = (totalAng - firstAng)*1000/25129;
+	position = (totalAng - firstAng)*1000/26947;
 
 
 	readBuf(&huart2, rxBufB, 128, &rx_check, ID, &p_wrtptB, &p_rdptB, &stop_counter, &error_counter);
