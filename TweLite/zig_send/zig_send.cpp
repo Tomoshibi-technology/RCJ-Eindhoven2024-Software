@@ -7,8 +7,8 @@
 #define ADC_FLT_MAX 4
 
 //通信
-const uint32_t APP_ID = 0x1234abcd; // application ID
-const uint8_t CHANNEL = 13; // channel 11-26
+const uint32_t APP_ID = 0x202407aa; // application ID
+const uint8_t CHANNEL = 21; // channel 11-26
 const char APP_FOURCHAR[] = "TECH";
 
 //送るときのやつ
