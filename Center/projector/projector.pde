@@ -58,7 +58,7 @@ void setup() {
 	;
 
   textlabel = cp5.addTextlabel("info")
-    .setPosition(1400, 850)
+    .setPosition(20, 850)
     .setSize(200, 30)
     .setFont(createFont("Arial", 20))
     .setColor(color(0, 0, 0))
