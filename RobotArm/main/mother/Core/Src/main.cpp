@@ -58,23 +58,26 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim3;
 DMA_HandleTypeDef hdma_tim3_ch1_trig;
 
+UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_uart5_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 WS2812C NeopixelTape(&htim3, TIM_CHANNEL_1, &hdma_tim3_ch1_trig);
 CALC calc;
-
 STS servo0(&huart2, 0);
 STS servo1(&huart2, 1);
 STS servo2(&huart2, 2);
 STS servo3(&huart2, 3);
+
 int16_t servoPos0 = 0;
 int16_t servoPos1 = 0;
 int16_t servoPos2 = 0;
 int16_t servoPos3 = 0;
 uint8_t rxBuf[128];
+uint8_t tweliteRxBuf[128];
 
 int16_t ledPos0 = 0;
 int16_t ledPos1 = 0;
@@ -90,9 +93,16 @@ uint8_t ID = 0;
 
 uint32_t m = 0;
 
+uint8_t mode = 0;
+uint16_t count = 0;
+uint8_t hue = 0;
+
 static int16_t i = 8;
 static int16_t moveRotation = 0;
 
+
+
+uint8_t tweliteRead[9] = {0};
 
 
 
@@ -112,9 +122,11 @@ static void MX_I2C1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 void get_position(uint8_t servoID);
 void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
+void twelite();
 
 
 
@@ -181,6 +193,7 @@ int main(void)
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
   NeopixelTape.init();
 
@@ -195,6 +208,7 @@ int main(void)
   }
 
   HAL_UART_Receive_DMA(&huart2, rxBuf, sizeof(rxBuf));
+  HAL_UART_Receive_DMA(&huart5, tweliteRxBuf, sizeof(tweliteRxBuf));
   HAL_GPIO_WritePin(servosw_GPIO_Port, servosw_Pin, GPIO_PIN_SET);
   HAL_Delay(1000);
 
@@ -328,22 +342,19 @@ int main(void)
     }
     else
     {
-      servo0.moveCont(1000, 0, servoPos0);
-      servo2.moveCont(1000, 0, servoPos2);
+//      servo0.moveCont(1000, 2048, servoPos0);
+//      servo1.moveStop1(1000, 2048);
+//      servo2.moveCont(1000, 2048, servoPos2);
+//      servo3.moveStop3(1000, 1800);
       sendData(0, 0, 0);
-      for (uint8_t led = 0; led < 16; led++)
+      for (uint8_t led = 0; led < 48; led++)
       {
-        NeopixelTape.set_hsv(led, 0, 0, 0);
-        NeopixelTape.show();
-      }
-      for (uint8_t led = 32; led < 48; led++)
-      {
-        NeopixelTape.set_hsv(led, 0, 0, 0);
+        NeopixelTape.set_hsv(led, calc.similarityRise(led, 180, 360, hue, 100), 255, 10);
         NeopixelTape.show();
       }
     }
 
-    m++;
+    twelite();
 
 
 
@@ -498,6 +509,39 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART5_Init(void)
+{
+
+  /* USER CODE BEGIN UART5_Init 0 */
+
+  /* USER CODE END UART5_Init 0 */
+
+  /* USER CODE BEGIN UART5_Init 1 */
+
+  /* USER CODE END UART5_Init 1 */
+  huart5.Instance = UART5;
+  huart5.Init.BaudRate = 115200;
+  huart5.Init.WordLength = UART_WORDLENGTH_8B;
+  huart5.Init.StopBits = UART_STOPBITS_1;
+  huart5.Init.Parity = UART_PARITY_NONE;
+  huart5.Init.Mode = UART_MODE_TX_RX;
+  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART5_Init 2 */
+
+  /* USER CODE END UART5_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -573,6 +617,9 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
   /* DMA1_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
@@ -598,6 +645,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(servosw_GPIO_Port, servosw_Pin, GPIO_PIN_RESET);
@@ -644,7 +692,7 @@ void get_position(uint8_t servoID)
   static int16_t inst_pos1 = 0;
   static int16_t inst_pos2 = 0;
   static int16_t inst_pos3 = 0;
-  static uint8_t index = 0;
+  static uint8_t readPos = 0;
   uint8_t checksum = 0;
   uint8_t read[15] = {0};
   uint8_t position[6] = {0};
@@ -669,14 +717,14 @@ void get_position(uint8_t servoID)
 
   HAL_Delay(1);
 
-  index = huart2.hdmarx->Instance->NDTR;
-  index = sizeof(rxBuf) - index;
+  readPos = huart2.hdmarx->Instance->NDTR;
+  readPos = sizeof(rxBuf) - readPos;
 
-  if (index >= 15)
+  if (readPos >= 15)
   {
     for (int i = 0; i < 15; i++)
     {
-      read[i] = rxBuf[index - 14 + i];
+      read[i] = rxBuf[readPos - 14 + i];
       HAL_Delay(1);
     }
   }
@@ -741,6 +789,41 @@ void sendData(uint16_t angle, uint8_t speed, int16_t rotation)
   sendArray[7] = checksum;
   HAL_UART_Transmit(&huart3, sendArray, 8, 100);
   HAL_Delay(1);
+}
+
+void twelite()
+{
+  static uint8_t readPos = 0;
+  uint8_t tweliteData[4] = {0};
+
+  HAL_Delay(1);
+
+  readPos = huart5.hdmarx->Instance->NDTR;
+  readPos = sizeof(tweliteRxBuf) - readPos;
+
+  if (readPos >= 9)
+  {
+    for (int i = 0; i < 9; i++)
+    {
+      tweliteRead[i] = tweliteRxBuf[readPos - 8 + i];
+      HAL_Delay(1);
+    }
+  }
+
+  for (int i = 0; i < 5; i++)
+  {
+    if (tweliteRead[i] == 250)
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        tweliteData[j] = tweliteRead[i + j + 1];
+      }
+    }
+  }
+
+  mode = tweliteData[0] - 5;
+  count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
+  hue = tweliteData[3];
 }
 
 
