@@ -15,7 +15,7 @@ AudioPlayer pon;
 Minim minim;
 FFT fft;
 
-String bgm_ready = "Lightrall.mp3";
+String bgm_ready = "Lightrail.mp3";
 String bgm_performanceA = "parformanceA.wav";
 String bgm_performanceB = "parformanceB.wav";
 String bgm_pon = "button.mp3";
@@ -66,88 +66,188 @@ void setup() {
 }
 
 boolean startflg = false;
-
 int start_millis;
-int beat_millis = 17 ; // 1000/66
-long pre_millis = 0;
 
-int raw_count = 0;
-int beat_count = 0;
+long A_start_time = 0;
+long A_stop_time = 75000;
+long B_start_time = 90000;
+long B_stop_time = 140000;
+
+boolean startflg_A = false;
+int beat_millis_A = 469 ; // 1000/2.13333 128bpm
+long pre_beat_millis_A = 0;
+int beat_count_A = 0;
+int small_millis_A = 23 ; // 469/23=20.391カウント 
+long pre_small_millis_A = 0;
+int small_count_A = 0;
+
+boolean startflg_B = false;
+int beat_millis_B = 469 ; // 1000/2.13333 128bpm
+long pre_beat_millis_B = 0;
+int beat_count_B = 0;
+int small_millis_B = 23 ; // 469/23=20.391カウント 
+long pre_small_millis_B = 0;
+int small_count_B = 0;
 
 void draw() {
-
-
-	// colorMode( HSB ); 
-	// background(slider1,200,250); // 背景色をスライダーの値に変更
-
-
 	//　時間経過
 	if(toggle1 && !(startflg)){
-		performanceA.play();
 		start_millis = millis();
 		startflg = true;
   }
-	if(startflg){
-    //fill(color(255));
-		int now_millis = millis() - start_millis;
-		if(pre_millis + beat_millis < now_millis){
-			if(raw_count%32 == 0){
-				beat_count++;
-				 pon.play();
-				 pon.rewind();
-				 print("__________________");
-				 println(beat_count);
-			}
-			pre_millis += beat_millis;
-			raw_count++;
-		}
-  }else{
-		//fill(color(128));
-	}
-  //rect(670,100,20,20);
-
+  
+  long now_millis = millis() - start_millis;
+  if(startflg){
+    if(now_millis>A_start_time && !(startflg_A)){ // Aをスタートさせる
+      performanceA.play();
+      startflg_A = true;
+      pre_beat_millis_A = now_millis + 205;
+      pre_small_millis_A = now_millis + 205;
+    }
+    if(now_millis>A_stop_time && startflg_A){ // Aをとめる
+      performanceA.close();
+      startflg_A = false;
+      beat_count_A = 0;
+      small_count_A = 0;
+    }
+  	if(startflg_A){ // Aのカウント
+  		if(pre_beat_millis_A + beat_millis_A < now_millis){ // beatカウント
+        pon.play();
+        pon.rewind();
+  			pre_beat_millis_A += beat_millis_A;
+  			beat_count_A++;
+        small_count_A = beat_count_A * 21;
+  		}
+      if(pre_small_millis_A + small_millis_A < now_millis){ // 小さい方カウント
+        pre_small_millis_A = now_millis; // 徐々にズレが蓄積しても問題ないため
+        small_count_A++;
+      }
+    }
+    //-----------ここまでA---------------
+    if(now_millis>B_start_time && !(startflg_B)){ // Bをスタートさせる
+      performanceB.play();
+      startflg_B = true;
+      pre_beat_millis_B = now_millis + 205;
+      pre_small_millis_B = now_millis + 205;
+    }
+    if(now_millis>B_stop_time && startflg_B){ // Aをとめる
+      performanceB.close();
+      startflg_B = false;
+      beat_count_B = 0;
+      small_count_B = 0;
+    }
+    if(startflg_B){ // Aのカウント
+      if(pre_beat_millis_B + beat_millis_B < now_millis){ // beatカウント
+        pon.play();
+        pon.rewind();
+        pre_beat_millis_B += beat_millis_B;
+        beat_count_B++;
+        small_count_B = beat_count_B * 21;
+      }
+      if(pre_small_millis_B + small_millis_B < now_millis){ // 小さい方カウント
+        pre_small_millis_B = now_millis; // 徐々にズレが蓄積しても問題ないため
+        small_count_B++;
+      }
+    }
+  }  
+  
+  
 	//Mode選ぶ
-	int mode;
+	int mode = 0;
 	int myHue = 0;
-	if(beat_count == 0){
-		mode = 0;
-		myHue = slider1;
-	}else if(beat_count <= 32){
-		mode = 1;
-		myHue = (beat_count*5 + 20)%255;
-	}else if(beat_count <= 80){
-		mode = 2;
-		myHue = 115;
-	}else if(beat_count <= 96){
-		mode = 3;
-		myHue = 134;
-	}else if(beat_count <= 161){
-		mode = 4;
-		myHue = 180;
-	}else if(beat_count <= 192){ // 一つ目のみんな同時
-		mode = 5;
-		myHue = 20;
-	}else if(beat_count <= 257){
-		mode = 6;
-		myHue = 160;
-	}else if(beat_count <= 321){ //全部
-		mode = 7;
-		myHue = beat_count%255;
-	}else if(beat_count <= 354){
-		mode = 8;
-		myHue = 140;
-	}else{
-		mode = 9;
-		myHue = 140;
-	}
-
+  int raw_count = 0;
+  
+  if(!(startflg)){
+    mode = 0;
+    myHue = slider1;
+    raw_count = 0;
+  }else if(A_start_time<=now_millis && now_millis<=A_stop_time){
+    if(beat_count_A <= 15){
+      mode = 1;
+      myHue = (beat_count_A*5 + 20)%255;
+    }else if(beat_count_A <= 47){
+      mode = 2;
+      myHue = 200;
+    }else if(beat_count_A <= 78){
+      mode = 3;
+      myHue = 200;
+    }else if(beat_count_A <= 110){
+      mode = 4;
+      myHue = 200;
+    }else if(beat_count_A <= 127){
+      mode = 5;
+      myHue = 200;
+    }else if(beat_count_A <= 142){
+      mode = 6;
+      myHue = 200;
+    }else if(beat_count_A <= 158){
+      mode = 7;
+      myHue = 200;
+    }else{
+      mode = 8;
+      myHue = 200;
+    }
+    raw_count = small_count_A;
+  }else if(A_stop_time<=now_millis && now_millis<=B_start_time){
+    mode = 9;
+    myHue = 0;
+    raw_count = 0;
+  }else if(B_start_time<=now_millis && now_millis<=B_stop_time){
+    if(beat_count_B <= 17){
+      mode = 10;
+      myHue = (beat_count_B*5 + 20)%255;
+    }else if(beat_count_B <= 47){
+      mode = 11;
+      myHue = 120;
+    }else if(beat_count_B <= 73){
+      mode = 12;
+      myHue = 120;
+    }else  if(beat_count_B <= 80){
+      mode = 13;
+      myHue = 120;
+    }else  if(beat_count_B <= 94){
+      mode = 14;
+      myHue = 120;
+    }else  if(beat_count_B <= 105){
+      mode = 15;
+      myHue = 120;
+    }else{
+      mode = 16;
+      myHue = 0;
+    }
+    raw_count = small_count_B;
+  }else{
+    mode = 16;
+    myHue = 0;
+    raw_count = 0;
+  }
+  
+  if(now_millis%30 == 0){
+     print(small_count_A);
+     print("___");
+     print(beat_count_A);
+     print("___");
+     print(small_count_B);
+     print("___");
+     print(beat_count_B);
+     print("___");
+     print(now_millis);
+     print("_______");
+     print(mode);
+     print("___");
+     print(myHue);
+     print("___");
+     println(raw_count);
+  }
+    
+  
 	// 色の調整
 	if(myHue == 250){
 		myHue = 251;
 	}
 
-	// 通信
-	if(raw_count%3 == 0){ //20FPS
+	 //通信
+	if(raw_count%2 == 0){ //20FPS
 		myPort.write(250);
 		myPort.write(mode+5); //1         
 		myPort.write(byte(raw_count/240 + 5)); //2
@@ -157,18 +257,18 @@ void draw() {
 
 
 
-	if(myPort.available() > 0){
-		// print(myPort.read());
-		// print("______");
-	}
-	if(raw_count%20 == 0){
-		// print(mode);
-		// print("___");
-		// print(raw_count);
-		// print("___");
-		// print(myHue);
-		// println("___");
-	}
+	//if(myPort.available() > 0){
+	//	// print(myPort.read());
+	//	// print("______");
+	//}
+	//if(raw_count_A%20 == 0){
+	//	 print(mode);
+	//	 print("___");
+	//	 print(raw_count_A);
+	//	 print("___");
+	//	 print(myHue);
+	//	 println("___");
+	//}
 
 	//お絵描き
 
