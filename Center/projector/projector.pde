@@ -24,6 +24,7 @@ String bgm_pon = "button.mp3";
 ControlP5 cp5; 
 int slider1;
 boolean toggle1 = false;
+Textlabel textlabel;
 
 Serial myPort;
 
@@ -55,6 +56,14 @@ void setup() {
 		.setSize(500,50)
 		.setValue(false)
 	;
+
+  textlabel = cp5.addTextlabel("info")
+    .setPosition(1400, 850)
+    .setSize(200, 30)
+    .setFont(createFont("Arial", 20))
+    .setColor(color(0, 0, 0))
+    .setText("Slider Value: 50")
+  ;  // 初期テキスト
 
 	minim = new Minim(this);
   performanceA = minim.loadFile(bgm_performanceA,1024);
@@ -274,6 +283,15 @@ void draw() {
 
 	colorMode( HSB ); 
 	background(myHue,200,250); // 背景色をスライダーの値に変更
+
+
+  textlabel.setText(
+    "mode: "+mode+ 
+    "\ncount: "+raw_count+ 
+    "\nHue: "+myHue+
+    "\nbeatA: "+beat_count_A+ 
+    "\nbeatB: "+beat_count_B 
+  );
 
 	if(mode != 0){
 		// rect(0,0,1920,1080);
