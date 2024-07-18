@@ -111,9 +111,10 @@ uint8_t readID(){
 	if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){
 		ID+=4;
 	}
-	if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
-		ID+=8;
-	}
+	//養生5番はここを消す。ハード故障。
+//	if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
+//		ID+=8;
+//	}
 	if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){
 		ID+=16;
 	}
