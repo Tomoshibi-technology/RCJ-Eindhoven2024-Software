@@ -47,6 +47,9 @@ DMA_HandleTypeDef hdma_tim3_ch2;
 /* USER CODE BEGIN PV */
 WS2812 Neopixel(&htim3, TIM_CHANNEL_2, &hdma_tim3_ch2);
 
+uint8_t aaa = 0;
+uint8_t bbb = 0;
+
 
 /* USER CODE END PV */
 
@@ -63,10 +66,12 @@ static void MX_TIM3_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim) {
 	Neopixel.do_forwardRewrite();
+	aaa++;
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
 	Neopixel.do_backRewrite();
+	bbb++;
 }
 
 /* USER CODE END 0 */
@@ -108,14 +113,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	uint16_t  pwmlist1[] = {
+		10, 2, 0, 4, 14,
+	};
+
+	//  HAL_TIM_PWM_Start_DMA(HTIM, TIM_CHANNEL_X, (uint32_t *)wr_buf, 48);
+	HAL_TIM_PWM_Start_DMA (&htim3, TIM_CHANNEL_2, (uint32_t*)pwmlist1, sizeof (pwmlist1) / sizeof (uint16_t));
+	HAL_Delay(100);
+	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_2);
 
   while (1)
   {
-    /* USER CODE END WHILE */
-	  Neopixel.clear();
-	  Neopixel.set_rgb(3, 10, 33, 80);
-	  Neopixel.show();
+	  htim3.State = HAL_TIM_STATE_READY;
+	  HAL_TIM_PWM_Start_DMA (&htim3, TIM_CHANNEL_2, (uint32_t*)pwmlist1, sizeof (pwmlist1) / sizeof (uint16_t));
 	  HAL_Delay(100);
+	  HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_2);
+
+//	  Neopixel.clear();
+//	  for(uint8_t i=0; i<200; i++){
+//		  Neopixel.set_rgb(i, 10, 33, 80);
+//	  }
+//	  Neopixel.show();
+
+	  HAL_Delay(10);
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
@@ -177,6 +198,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 0 */
 
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
 
@@ -189,6 +211,15 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 15-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
     Error_Handler();
@@ -202,7 +233,7 @@ static void MX_TIM3_Init(void)
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
