@@ -82,6 +82,7 @@ def mask_image_and_get_color_and_center(img):
             uart.write(data_packet)
 
     else:
+        print("nothing")
         data_packet = bytearray([250,15,15,15])
         uart.write(data_packet)
 
