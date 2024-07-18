@@ -4,6 +4,9 @@ LED::LED(WS2812* neopixel){
     NEOPIXEL = neopixel;
 }
 
+
+
+
 void LED::init(uint8_t panel_id){
     NEOPIXEL->clear();
     if	   (panel_id==0){PANEL_START_X = 0; PANEL_START_Z = 0;}
@@ -41,6 +44,15 @@ void LED::set_circle(int x, int z, int cx, int cz, int ro, int h){
     	hue = h; sat = 240; val = 20;
     }else{}
 }
+
+
+
+
+
+
+
+
+
 
 void LED::do_forwardRewrite(){
     NEOPIXEL->do_forwardRewrite();

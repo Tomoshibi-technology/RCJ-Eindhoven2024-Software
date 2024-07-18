@@ -64,6 +64,19 @@ uint8_t Data[12];
 
 int8_t myid = 0;
 
+uint8_t circle_x = 0;
+uint8_t circle_z = 0;
+uint8_t circle_r = 0;
+uint8_t circle_h = 0;
+uint8_t circle_s = 255;
+uint8_t circle_v = 50;
+uint8_t back_h = 0;
+uint8_t back_s = 255;
+uint8_t back_v = 50;
+uint8_t square_h = 0;
+uint8_t square_s = 255;
+uint8_t square_v = 50;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,13 +104,17 @@ uint8_t readID(){
 	uint8_t ID = 0;
 	if(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin)==1){
 		ID+=1;
-	}else if(HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin)==1){
+	}
+	if(HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin)==1){
 		ID+=2;
-	}else if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){
+	}
+	if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){
 		ID+=4;
-	}else if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
+	}
+	if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
 		ID+=8;
-	}else if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){
+	}
+	if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){
 		ID+=16;
 	}
 	return ID;
@@ -152,13 +169,83 @@ int main(void)
   {
 	readBuf(&huart2, rxBuf, 64, Data, 12, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
 	myid = readID();
+
+	circle_x = Data[0];
+	circle_z = Data[1];
+	circle_r = Data[2];
+	circle_h = Data[3];
+	circle_s = Data[4];
+	circle_v = Data[5];
+	back_h = Data[6];
+	back_s = Data[7];
+	back_v = Data[8];
+	square_h = Data[9];
+	square_s = Data[10];
+	square_v = Data[11];
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
 	  Neopixel.clear();
-	  for(uint16_t i=0; i<256; i++){
-		  Neopixel.set_hsv(i, (i*8)%256, 250, 10);
+
+
+	  //----------------------------------------------
+	  uint16_t PANEL_START_X = 0;
+	  uint16_t PANEL_START_Z = 0;
+
+	  if	 (myid==0){PANEL_START_X = 0; PANEL_START_Z = 0;}
+	  else if(myid==1){PANEL_START_X = 0; PANEL_START_Z = 16;}
+	  else if(myid==2){PANEL_START_X = 0; PANEL_START_Z = 32;}
+
+	  else if(myid==3){PANEL_START_X = 16; PANEL_START_Z = 0;}
+	  else if(myid==4){PANEL_START_X = 16; PANEL_START_Z = 16;}
+	  else if(myid==5){PANEL_START_X = 16; PANEL_START_Z = 32;}
+
+	  else if(myid==6){PANEL_START_X = 32; PANEL_START_Z = 0;}
+	  else if(myid==7){PANEL_START_X = 32; PANEL_START_Z = 16;}
+	  else if(myid==8){PANEL_START_X = 32; PANEL_START_Z = 32;}
+
+//	  void LED::show(int travel_x, int circle_x, int circle_z, int circle_r, int hue, int hue_of_back){
+//	      NEOPIXEL->clear();
+	  for(int px=0; px<16; px++){
+		  for(int pz=0; pz<16; pz++){
+			  int x = px + PANEL_START_X;
+			  int z = pz + PANEL_START_Z;
+
+			  //BACK_GROUND
+			  int hue=back_h;
+			  int sat=back_s;
+			  int val=back_v;
+
+			  //square
+			  if((x==0 || x==1)||(x==46 || x==47)){
+					hue = square_h; sat = square_s; val = square_v;
+			  }
+			  if((z==0 || z==1)||(z==46 || z==47)){
+			  		hue = square_h; sat = square_s; val = square_v;
+			  }
+
+			  //CIRCLE
+			  uint8_t cx = 47-circle_x;
+			  uint8_t cz = circle_z;
+			  uint8_t cr = circle_r;
+			  uint8_t myx = x;
+			  uint8_t myz = z;
+			  float distance = (myx-cx)*(myx-cx)+(myz-cz)*(myz-cz);
+			  if(cr*cr>=distance){
+				hue = circle_h; sat = circle_s; val = circle_v;
+			  }
+
+			  //SET
+			  uint16_t pixel_num = 0;
+			  if(pz%2 == 0){
+				   pixel_num = pz*16 + px;
+			  }else{
+				  pixel_num = pz*16 + 15 - px;
+			  }
+			  Neopixel.set_hsv(pixel_num, hue, sat, val);
+		  }
 	  }
 	  Neopixel.show();
 
