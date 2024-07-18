@@ -52,10 +52,17 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 WS2812 Neopixel(&htim3, TIM_CHANNEL_2, &hdma_tim3_ch2);
 LED led(&Neopixel);
-SDMA_TRANSMIT fromMother(&huart2,0);
-float k=0;
-int out_hue1, out_hue2;
-int id;
+
+
+uint8_t p_wrtptA=0;
+uint8_t p_rdptA=0;
+uint16_t stop_counterA=0;
+uint16_t error_counterA=0;
+
+uint8_t rxBuf[64];
+uint8_t Data[12];
+
+int8_t myid = 0;
 
 /* USER CODE END PV */
 
@@ -66,28 +73,33 @@ static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter, uint8_t go_back);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
 void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim) {
-	led.do_forwardRewrite();
+	Neopixel.do_forwardRewrite();
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
-	led.do_backRewrite();
+	Neopixel.do_backRewrite();
 }
 
 uint8_t readID(){
 	uint8_t ID = 0;
-	if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){ID=0;}
-	else if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){ID=1;}
-	else if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){ID=2;}
-	if(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin)==1){ID=ID+3;}
-	else if(HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin)==1){ID=ID+6;}
-	else{ID = ID;}
+	if(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin)==1){
+		ID+=1;
+	}else if(HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin)==1){
+		ID+=2;
+	}else if(HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin)==1){
+		ID+=4;
+	}else if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
+		ID+=8;
+	}else if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){
+		ID+=16;
+	}
 	return ID;
 }
 
@@ -109,6 +121,9 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  for(uint8_t i=0; i<64; i++){
+	  rxBuf[i] = 255;
+  }
 
   /* USER CODE END Init */
 
@@ -125,25 +140,33 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  led.init(readID());
-  id = readID();
-  fromMother.begin_dma();
+
+  HAL_UART_Receive_DMA(&huart2, rxBuf, 64);
+  HAL_Delay(1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	readBuf(&huart2, rxBuf, 64, Data, 12, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
+	myid = readID();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    fromMother.check_buf();
-    out_hue1 = 2.5 * fromMother.in_hue1;
-    if(out_hue1>=255){out_hue1 = 255;}
-    out_hue2 = 2.5 * fromMother.in_hue2;
-    if(out_hue2>=255){out_hue2 = 255;}
-     led.show(fromMother.travel_x, fromMother.circle_x, fromMother.circle_z, fromMother.radius, out_hue1, out_hue2);
-//     HAL_Delay(10);
+
+	  Neopixel.clear();
+	  for(uint16_t i=0; i<256; i++){
+		  Neopixel.set_hsv(i, (i*8)%256, 250, 10);
+	  }
+	  Neopixel.show();
+
+
+
+
+
+
   }
   /* USER CODE END 3 */
 }
@@ -349,7 +372,85 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter, uint8_t go_back){
+	int wrt_pt = uart->hdmarx->Instance->CNDTR;
+	wrt_pt= buf_size - wrt_pt;
+	int rd_pt;
 
+	if(wrt_pt != *p_rdpt){//wrtに追??��?��?付かれてな??��?��?
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな??��?��?=追??��?��?越されてな??��?��?
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�???��?��んだ=受信した
+//正常
+				*stop_counter = 0;
+				rd_pt = *p_rdpt;
+			}else{//wrt_ptが�???��?��んでな??��?��?=受信してな??��?��?
+//受信してな??��?��?
+				(*stop_counter)++;
+				rd_pt = *p_rdpt;
+			}
+		}else{//p_rdptが書き換えられた=追??��?��?越された
+//追??��?��?越された
+			(*error_counter)++;
+			rd_pt = wrt_pt - go_back;
+				if(rd_pt < 0){rd_pt += buf_size;}
+		}
+	}else{//wrtに追??��?��?付かれた,追??��?��?付い??��?��?
+		int front_pt = wrt_pt + 1;
+			if(front_pt>buf_size-1){front_pt -= buf_size;}
+
+		if(buf[front_pt] == 255){
+//追??��?��?付い??��?��?
+			(*stop_counter)++;
+			rd_pt = *p_rdpt;
+		}else{
+//追??��?��?付かれた
+			(*error_counter)++;
+			rd_pt = wrt_pt - go_back;
+				if(rd_pt < 0){rd_pt += buf_size;}
+		}
+	}
+
+	if(*stop_counter > 65500){*stop_counter = 65500;}
+	if(*error_counter > 65500){*error_counter = 65500;}
+
+
+	while(1){
+		int dif_pt = wrt_pt - rd_pt;
+			if(dif_pt < 0){dif_pt += buf_size;}
+		if(dif_pt <= go_back/2){break;}
+
+		rd_pt++;
+			if(rd_pt>buf_size-1){rd_pt -= buf_size;}
+
+		if(buf[rd_pt] == 250+id){
+			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな??��?��?,25以上も??��?��???��?��?
+
+				if(goal_rdpt>buf_size-1){goal_rdpt -= buf_size;}
+			int temp_rdpt = rd_pt;
+
+			buf[rd_pt] = 255;
+
+			for(int i=0; i<data_size; i++){
+				temp_rdpt += 1;
+					if(temp_rdpt>buf_size-1){temp_rdpt -= buf_size;}
+
+				data[i] = buf[temp_rdpt];
+				buf[temp_rdpt] = 255;
+			}
+
+			rd_pt = temp_rdpt;
+
+			dif_pt = wrt_pt - rd_pt;
+				if(dif_pt < 0){dif_pt += buf_size;}
+			if(dif_pt >= buf_size/2){}
+			else{break;}
+		}else{buf[rd_pt] = 255;}
+	}
+
+	*p_rdpt = rd_pt;
+//	*p_wrtpt = buf_size - (uart->hdmarx->Instance->CNDTR);
+	*p_wrtpt = wrt_pt;
+}
 /* USER CODE END 4 */
 
 /**
