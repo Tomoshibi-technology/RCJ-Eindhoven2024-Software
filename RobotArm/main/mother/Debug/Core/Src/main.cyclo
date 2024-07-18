@@ -1,16 +1,36 @@
-main.cpp:144:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	2
-main.cpp:167:5:int main()	27
-main.cpp:376:6:void SystemClock_Config()	3
-main.cpp:423:13:void MX_I2C1_Init()	2
-main.cpp:457:13:void MX_TIM3_Init()	6
-main.cpp:516:13:void MX_UART5_Init()	2
-main.cpp:549:13:void MX_USART2_UART_Init()	2
-main.cpp:582:13:void MX_USART3_UART_Init()	2
-main.cpp:613:13:void MX_DMA_Init()	1
-main.cpp:637:13:void MX_GPIO_Init()	1
-main.cpp:689:6:void get_position(uint8_t)	20
-main.cpp:771:6:void sendData(uint16_t, uint8_t, int16_t)	3
-main.cpp:794:6:void twelite()	6
-main.cpp:844:6:void Error_Handler()	1
-main.cpp:853:1:void __static_initialization_and_destruction_0(int, int)	3
-main.cpp:853:1:cpp)	1
+main.cpp:140:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	2
+main.cpp:148:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
+main.cpp:162:5:int main()	39
+main.cpp:332:6:void SystemClock_Config()	3
+main.cpp:378:13:void MX_I2C1_Init()	2
+main.cpp:411:13:void MX_TIM3_Init()	6
+main.cpp:469:13:void MX_TIM6_Init()	3
+main.cpp:506:13:void MX_UART5_Init()	2
+main.cpp:538:13:void MX_USART2_UART_Init()	2
+main.cpp:570:13:void MX_USART3_UART_Init()	2
+main.cpp:600:13:void MX_DMA_Init()	1
+main.cpp:623:13:void MX_GPIO_Init()	1
+main.cpp:675:6:void get_position(uint8_t)	20
+main.cpp:757:6:void sendData(uint16_t, uint8_t, int16_t)	3
+main.cpp:780:6:void twelite()	8
+main.cpp:815:6:void setMode()	31
+main.cpp:895:6:void mode0()	2
+main.cpp:909:6:void mode1()	2
+main.cpp:923:6:void mode2()	1
+main.cpp:931:6:void mode3()	8
+main.cpp:987:6:void mode4()	17
+main.cpp:1060:6:void mode5()	2
+main.cpp:1074:6:void mode6()	2
+main.cpp:1088:6:void mode7()	2
+main.cpp:1104:6:void mode8()	2
+main.cpp:1114:6:void mode9()	1
+main.cpp:1116:6:void mode10()	1
+main.cpp:1118:6:void mode11()	2
+main.cpp:1137:6:void mode12()	14
+main.cpp:1219:6:void mode13()	2
+main.cpp:1233:6:void mode14()	2
+main.cpp:1249:6:void mode15()	2
+main.cpp:1264:6:void modeError()	2
+main.cpp:1284:6:void Error_Handler()	1
+main.cpp:1293:1:void __static_initialization_and_destruction_0(int, int)	3
+main.cpp:1293:1:cpp)	1

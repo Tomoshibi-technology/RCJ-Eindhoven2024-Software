@@ -1411,7 +1411,7 @@ int main(void)
  8001012:	79fb      	ldrb	r3, [r7, #7]
  8001014:	2b1f      	cmp	r3, #31
  8001016:	d834      	bhi.n	8001082 <main+0xbe>
-			  NeopixelTape.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 10);
+			  NeopixelBoard.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 10);
  8001018:	79fb      	ldrb	r3, [r7, #7]
  800101a:	b29c      	uxth	r4, r3
  800101c:	4b1f      	ldr	r3, [pc, #124]	; (800109c <main+0xd8>)
@@ -1454,7 +1454,7 @@ int main(void)
  800106e:	23ff      	movs	r3, #255	; 0xff
  8001070:	462a      	mov	r2, r5
  8001072:	4621      	mov	r1, r4
- 8001074:	4808      	ldr	r0, [pc, #32]	; (8001098 <main+0xd4>)
+ 8001074:	4807      	ldr	r0, [pc, #28]	; (8001094 <main+0xd0>)
  8001076:	f000 fb71 	bl	800175c <_ZN7WS2812C7set_hsvEtsss>
 		  for(uint8_t led = 0; led < 32; led++){
  800107a:	79fb      	ldrb	r3, [r7, #7]
@@ -1462,8 +1462,8 @@ int main(void)
  800107e:	71fb      	strb	r3, [r7, #7]
  8001080:	e7c7      	b.n	8001012 <main+0x4e>
 		  }
-		  NeopixelTape.show();
- 8001082:	4805      	ldr	r0, [pc, #20]	; (8001098 <main+0xd4>)
+		  NeopixelBoard.show();
+ 8001082:	4804      	ldr	r0, [pc, #16]	; (8001094 <main+0xd0>)
  8001084:	f000 fc34 	bl	80018f0 <_ZN7WS2812C4showEv>
 	  m++;
  8001088:	4b07      	ldr	r3, [pc, #28]	; (80010a8 <main+0xe4>)

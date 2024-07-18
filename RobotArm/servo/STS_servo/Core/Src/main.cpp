@@ -152,20 +152,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  get_position(0);
+	  get_position(2);
+
 	  if(HAL_GPIO_ReadPin(slide_sw_GPIO_Port, slide_sw_Pin) == 1){
 		get_position(0);
-		servo0.moveCont(2000, 6000, pos0);
+		servo0.moveCont(500, 3000, pos0);
 		get_position(1);
-		servo1.moveStop(2000, 3000);
+		servo1.moveStop(500, 3000);
 		get_position(2);
-		servo2.moveCont(2000, 6000, pos2);
+		servo2.moveCont(500, 3000, pos2);
 	  }else{
 		get_position(0);
-		servo0.moveCont(-2000, 2000, pos0);
+		servo0.moveCont(-500, 1000, pos0);
 		get_position(1);
-		servo1.moveStop(2000, 2000);
+		servo1.moveStop(500, 1000);
 		get_position(2);
-		servo2.moveCont(-2000, 2000, pos2);
+		servo2.moveCont(-500, 1000, pos2);
 	  }
 
 
