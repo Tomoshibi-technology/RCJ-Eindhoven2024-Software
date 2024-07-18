@@ -158,9 +158,9 @@ int main(void)
 		  i -= 360;
 	  }
 		  for(uint8_t led = 0; led < 32; led++){
-			  NeopixelBoard.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 10);
+			  NeopixelTape.set_hsv(led, calc.similarityPeak(led, i, 180, i * 2 / 3, 50), 255, calc.range(led, i, 180) * 10);
 		  }
-		  NeopixelBoard.show();
+		  NeopixelTape.show();
 	  m++;
 
 

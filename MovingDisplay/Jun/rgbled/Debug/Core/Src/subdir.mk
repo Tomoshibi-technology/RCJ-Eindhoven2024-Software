@@ -1,20 +1,20 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (10.3-2021.10)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
+CPP_SRCS += \
+../Core/Src/calc.cpp \
+../Core/Src/main.cpp \
+../Core/Src/ws2812c.cpp 
+
 C_SRCS += \
 ../Core/Src/stm32f4xx_hal_msp.c \
 ../Core/Src/stm32f4xx_it.c \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
 ../Core/Src/system_stm32f4xx.c 
-
-CPP_SRCS += \
-../Core/Src/calc.cpp \
-../Core/Src/main.cpp \
-../Core/Src/ws2812c.cpp 
 
 C_DEPS += \
 ./Core/Src/stm32f4xx_hal_msp.d \
