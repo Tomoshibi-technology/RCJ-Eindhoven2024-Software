@@ -1,0 +1,7 @@
+../Core/Src/ws2812c.cpp:3:1:WS2812C::WS2812C(TIM_HandleTypeDef*, uint32_t, DMA_HandleTypeDef*)	1
+../Core/Src/ws2812c.cpp:9:6:void WS2812C::set_rgb(uint16_t, uint8_t, uint8_t, uint8_t)	2
+../Core/Src/ws2812c.cpp:17:6:void WS2812C::set_hsv(uint16_t, int16_t, int16_t, int16_t)	13
+../Core/Src/ws2812c.cpp:41:6:void WS2812C::show()	1
+../Core/Src/ws2812c.cpp:45:6:void WS2812C::execute()	7
+../Core/Src/ws2812c.cpp:70:6:void WS2812C::init()	3
+../Core/Src/ws2812c.cpp:83:6:void WS2812C::clear()	2
