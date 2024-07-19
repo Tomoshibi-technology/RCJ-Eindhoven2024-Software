@@ -58,34 +58,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := SERVO_TEST
+BUILD_ARTIFACT_NAME := servo_test
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-SERVO_TEST.elf \
+servo_test.elf \
 
 MAP_FILES += \
-SERVO_TEST.map \
+servo_test.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-SERVO_TEST.list \
+servo_test.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: SERVO_TEST.elf secondary-outputs
+main-build: servo_test.elf secondary-outputs
 
 # Tool invocations
-SERVO_TEST.elf SERVO_TEST.map: $(OBJS) $(USER_OBJS) /Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/Jun/SERVO_TEST/STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "SERVO_TEST.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/Jun/SERVO_TEST/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SERVO_TEST.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+servo_test.elf servo_test.map: $(OBJS) $(USER_OBJS) /Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/servo_test/STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "servo_test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/servo_test/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="servo_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -94,14 +94,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-SERVO_TEST.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "SERVO_TEST.list"
+servo_test.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "servo_test.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) SERVO_TEST.elf SERVO_TEST.list SERVO_TEST.map default.size.stdout
+	-$(RM) default.size.stdout servo_test.elf servo_test.list servo_test.map
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

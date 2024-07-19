@@ -182,25 +182,25 @@ void draw() {
       myHue = (beat_count_A*5 + 20)%255;
     }else if(beat_count_A <= 47){
       mode = 2;
-      myHue = 200;
+      myHue = (100+beat_count_A*2)%255;
     }else if(beat_count_A <= 78){
       mode = 3;
-      myHue = 200;
+      myHue = (150+beat_count_A*2)%255;
     }else if(beat_count_A <= 110){
       mode = 4;
-      myHue = 200;
+      myHue = (50+beat_count_A*2)%255;
     }else if(beat_count_A <= 127){
       mode = 5;
-      myHue = 200;
+      myHue = (90+beat_count_A*2)%255;
     }else if(beat_count_A <= 142){
       mode = 6;
-      myHue = 200;
-    }else if(beat_count_A <= 158){
+      myHue = (130+beat_count_A*5)%255;
+    }else if(beat_count_A <= 158){ // バグ開始
       mode = 7;
-      myHue = 200;
+      myHue = (small_count_A*5 + 20)%255;
     }else{
       mode = 8;
-      myHue = 200;
+      myHue = 0;
     }
     raw_count = small_count_A;
   }else if(A_stop_time<=now_millis && now_millis<=B_start_time){
@@ -210,19 +210,19 @@ void draw() {
   }else if(B_start_time<=now_millis && now_millis<=B_stop_time){
     if(beat_count_B <= 17){
       mode = 10;
-      myHue = (beat_count_B*5 + 20)%255;
+      myHue = (150+beat_count_B)%255;
     }else if(beat_count_B <= 47){
       mode = 11;
-      myHue = 120;
+      myHue = (180+beat_count_B)%255;
     }else if(beat_count_B <= 73){
       mode = 12;
-      myHue = 120;
+      myHue = (beat_count_B*10 + 20)%255;
     }else  if(beat_count_B <= 80){
       mode = 13;
-      myHue = 120;
+      myHue = (beat_count_B*10 + 20)%255;
     }else  if(beat_count_B <= 94){
       mode = 14;
-      myHue = 120;
+      myHue = (beat_count_B*10 + 20)%255;
     }else  if(beat_count_B <= 105){
       mode = 15;
       myHue = 120;
