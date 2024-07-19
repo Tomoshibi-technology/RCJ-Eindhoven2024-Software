@@ -64,35 +64,40 @@ void setup() {
 }
 
 void led_set(int tape_n, int num, int H, int S, int V);
- void led_set_high(int High, int Hue, int Sat, int Bri);
- void led_set_all(int Hue, int Sat, int Bri);
- void led_set_star(int High, int Hue, int Sat, int Bri, bool isDown);
- void led_set_band(int center, int width, int Hue, int Sat, int Bri);
+void led_set_high(int High, int Hue, int Sat, int Bri);
+void led_set_all(int Hue, int Sat, int Bri);
+void led_set_star(int High, int Hue, int Sat, int Bri, bool isDown);
+void led_set_band(int center, int width, int Hue, int Sat, int Bri);
 
- uint8_t pre_mic_value = 0;
- int beat_count = 0;
- int target_raw_count = 32;
+uint8_t pre_mic_value = 0;
+int beat_count = 0;
+int target_raw_count = 32;
 
- int up_star_time = 0;
- int down_star_time = 0;
+int up_star_time = 0;
+int down_star_time = 0;
 
- long my_10msec = 0;
- long pre_10msec = 0;
- bool flg_10msec = false;
+long my_10msec = 0;
+long pre_10msec = 0;
+bool flg_10msec = false;
 
- int mode4_n =0;
- int mode5_time =0;
+int mode4_n =0;
+int mode5_time =0;
 
- int mode6_count = 0;
- int start6 = 0;
- int width6 = 1;
+int mode6_count = 0;
+int start6 = 0;
+int width6 = 1;
 
- bool mode6_flg = false;
+bool mode6_flg = false;
 
- int finish_V=32;
- bool flg_beat = false;
+int finish_V=24;
+bool flg_beat = false;
 
 long music_n = 0;
+
+
+
+
+boolean phase_flg = false;
 
 void loop() {
 	if(millis()-pre_10msec > 100){
@@ -102,8 +107,8 @@ void loop() {
 	}else{
 		flg_10msec = false;
 	}
-	Serial.print(my_10msec);
-	Serial.print("   ");
+	// Serial.print(my_10msec);
+	// Serial.print("   ");
 
 	// Serial.print("voltage: " + String(power.voltage()) + " " + String(power.percentage()) + "  ");
 
@@ -119,8 +124,8 @@ void loop() {
 	}else if(ID==4 || ID ==6){
 		ledHigh = 29 - 28*sin(music_n/15.0);
 	}
-	Serial.print("___");
-	Serial.println(ledHigh);
+	// Serial.print("___");
+	// Serial.println(ledHigh);
 
 	//　受信するよ 
 	ser_ctrl.read();
@@ -131,31 +136,41 @@ void loop() {
 	// Serial.println();
 
 		// 整理するよ
- 	int mode = ser_ctrl.data[7] - 5;
- 	long raw_count = ser_ctrl.data[9]-5 + (ser_ctrl.data[8]-5)*240;
- 	int ledHue = ser_ctrl.data[10]; 
+	int mode = ser_ctrl.data[7] - 5;
+	long raw_count = ser_ctrl.data[9]-5 + (ser_ctrl.data[8]-5)*240;
+	int ledHue = ser_ctrl.data[10]; 
 
- 	// beat_count	計算するよ	
- 	if(raw_count==0){
- 		target_raw_count = 32;
- 		beat_count = 0;
- 		mode4_n = 0;
- 		mode5_time = 0;
-		finish_V=32;
+	// beat_count	計算するよ	
+	if(raw_count==0){
+		target_raw_count = 24;
+		beat_count = 0;
+		mode4_n = 0;
+		mode5_time = 0;
+		finish_V=24;
 		music_n = 0;
- 	}
- 	if(raw_count > target_raw_count){
- 		beat_count++;
- 		target_raw_count += 32;
- 		flg_beat = true;
- 	}else{
- 		flg_beat = false;
- 	}
- 	Serial.print("  ");
- 	Serial.print(raw_count);
- 	Serial.print("  ");
- 	Serial.println(beat_count);
+	}
+	if(raw_count > target_raw_count){
+		beat_count++;
+		target_raw_count += 24;
+		flg_beat = true;
+	}else{
+		flg_beat = false;
+	}
+
+	beat_count = raw_count / 20.391;
+	long small_count = raw_count / 6.7;
 	
+	// if(mode == 9){
+	// 	beat_count =0;
+	// }
+	
+	Serial.print("  ");
+	Serial.print(raw_count);
+	Serial.print("  ");
+	Serial.print(small_count);	
+	Serial.print("  ");
+	Serial.println(beat_count);
+
 
 	// ここはいつも同じ
 	circuit_led.setBrightness(250);
@@ -163,81 +178,81 @@ void loop() {
 		circuit_led.setPixel_hsv(i, ser_ctrl.data[10], 250, 100);
 	} 
 
- 	//　modeごとに光らせる。
- 	if(mode == 1){ //Poleメイン
- 		led_set_all(0,10,5);
- 		led_set_high((beat_count-2)*2, ledHue,250,150);
- 	}else if(mode == 2){ //Armメイン 
- 		if(up_star_time==0)up_star_time = my_10msec;
- 		led_set_all(ledHue,200,20);
- 	}else if(mode == 3){ //Poleメイン
- 		//点滅して色回そう
- 		int myHue;
- 		if(ID%2 == 0){
- 			myHue = ledHue;
- 		}else{
- 			myHue = ledHue + 127;
- 		}
- 		if(beat_count%2 == 0){
- 			myHue += 127;
- 		}
- 		led_set_all(myHue+127, 150, 150);
- 	}else if(mode == 4){  //Movingメイン
- 		led_set_all(ledHue,200,20);
- 		if((ID+mode4_n)%2 == 1){
- 			if(up_star_time==0 && down_star_time == -10){
- 				up_star_time = my_10msec;
- 				mode4_n += 1;
- 			}
- 		}else{
- 			if(down_star_time== -10 && up_star_time == 0){
- 				down_star_time = my_10msec;
- 				mode4_n += 1;
- 			}
- 		}
+	//　modeごとに光らせる。
+	if(mode == 1){ 
+		led_set_all(0,10,0);
+		// led_set_high((beat_count-2)*2, ledHue,250,150);
+	}else if(mode == 2){
+		// if(up_star_time==0)up_star_time = my_10msec;
+		// led_set_all(ledHue,200,20);
+		led_set_all(0,10,0);
+	}else if(mode == 3){
+		led_set_all(0,10,0);
+	}else if(mode == 4){ 
+		led_set_all(0,10,0);
 
- 	}else if(mode == 5){ //みんなで
- 		led_set_all(0,15,5);
- 		if(mode5_time == 0){
- 			mode5_time = my_10msec;
- 		}
- 		int myheight = my_10msec - mode5_time;
- 		for(int num=0; num<myheight; num++){
- 			led_set((num+beat_count)%6, num, ledHue,250,150);
- 		}
- 		for(int num=0; num<myheight-20; num++){
- 			led_set((num+2+my_10msec)%6, num, ledHue+85,250,150);
- 		}
- 		for(int num=0; num<myheight-40; num++){
- 			led_set((num+4+my_10msec)%6, num, ledHue+170,250,150);
- 		}
+	}else if(mode == 5){
+		if(flg_10msec){
+			mode6_count++;
+		}
+		led_set_all(0,0,0);
+		if(up_star_time==0 && (114 + ID == beat_count))up_star_time = my_10msec;
 
- 	}else if(mode == 6){ // ArmとPole
- 		//led_set_all(0,10,5);
- 		if(flg_10msec){
- 			mode6_count++;
- 		}
+	}else if(mode == 6){ // ArmとPole
+		led_set_all(0,0,0);
+		ledHigh = (small_count - 400);
+		led_set_high(ledHigh, ledHue, 250, 200);
+	}else if(mode == 7){ // こわれるよん
+		led_set_all(0,15,5);
+		led_set_high(ledHigh, ledHue, 250, 200);
+	}else if(mode == 8){ // 色消していく
+		if(flg_beat){
+			finish_V--;
+			if(finish_V<5){
+				finish_V = 0;
+			}
+		}
+		led_set_all(ledHigh,15,finish_V);
 
- 		if(up_star_time==0 && ((193+ID==beat_count || 220+ID==beat_count)|| 240+ID==beat_count))up_star_time = my_10msec;
- 		led_set_all(ledHue,200,20);
+	}else if(mode == 9){//壊れてる
+		led_set_all(0,0,0);
+	}else if(mode == 10){ // 上がっていく
+		led_set_all(0,0,0);
+		ledHigh = small_count;
+		led_set_high(ledHigh, ledHue, 250, 200);
 
- 	}else if(mode == 7){ // 全部、手拍子フェーズ
- 		led_set_all(0,15,5);
- 		led_set_high(ledHigh, ledHue, 250, 200);
- 	}else if(mode == 8){ // 色消していく
- 		if(flg_beat){
- 			finish_V--;
- 			if(finish_V<5){
- 				finish_V = 0;
- 			}
- 		}
- 		led_set_all(ledHigh,15,finish_V);
+	}else if(mode == 11){
+		led_set_all(ledHue,50,200);
+		if(mode5_time == 0){
+			mode5_time = my_10msec;
+		}
+		int myheight = my_10msec - mode5_time;
+		for(int num=0; num<myheight; num++){
+			led_set((num+beat_count)%6, num, ledHue,250,150);
+		}
+		for(int num=0; num<myheight-20; num++){
+			led_set((num+2+my_10msec)%6, num, ledHue+85,250,150);
+		}
+		for(int num=0; num<myheight-40; num++){
+			led_set((num+4+my_10msec)%6, num, ledHue+170,250,150);
+		}
+	}else if(mode == 12){
+		led_set_all(0,15,5);
+		led_set_high(ledHigh, ledHue, 250, 200);
+	}else if(mode == 13){
+		led_set_all(0,15,5);
+		led_set_high(ledHigh, (ledHue+(ID+beat_count)*30 )%255, 250, 200);
+	}else if(mode == 14){
+		led_set_all(0,0,5);
+		ledHigh = (282-small_count) * 2;
+		led_set_high(ledHigh, ledHue, 250, 200);
 
-
- 	}else if(mode == 9){
- 		led_set_all(0,0,0);
- 	}else{
- 		led_set_all(ledHue,220,150);
+	}else if(mode == 15){
+		led_set_all(0,0,0);
+	}else if(mode==16){
+		led_set_all(0,0,0);
+	}else{
+		led_set_all(ledHue,220,150);
 	}
 
 
