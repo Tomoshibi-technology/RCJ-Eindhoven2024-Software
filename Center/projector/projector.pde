@@ -74,6 +74,8 @@ void setup() {
 	//fft = new FFT(performance.bufferSize(), performance.sampleRate());
 }
 
+boolean ready_musicflg = false;
+
 boolean startflg = false;
 int start_millis;
 
@@ -104,9 +106,13 @@ void draw() {
 		start_millis = millis();
 		startflg = true;
   }
+  if(!(startflg)){
+    ready.play();
+  }
   
   long now_millis = millis() - start_millis;
   if(startflg){
+    ready.close();
     if(now_millis>A_start_time && !(startflg_A)){ // Aをスタートさせる
       performanceA.play();
       startflg_A = true;
@@ -121,8 +127,8 @@ void draw() {
     }
   	if(startflg_A){ // Aのカウント
   		if(pre_beat_millis_A + beat_millis_A < now_millis){ // beatカウント
-        pon.play();
-        pon.rewind();
+        //pon.play();
+        //pon.rewind();
   			pre_beat_millis_A += beat_millis_A;
   			beat_count_A++;
         small_count_A = beat_count_A * 21;
@@ -142,13 +148,13 @@ void draw() {
     if(now_millis>B_stop_time && startflg_B){ // Aをとめる
       performanceB.close();
       startflg_B = false;
-      beat_count_B = 0;
+      beat_count_B = 0;  
       small_count_B = 0;
     }
     if(startflg_B){ // Aのカウント
       if(pre_beat_millis_B + beat_millis_B < now_millis){ // beatカウント
-        pon.play();
-        pon.rewind();
+        //pon.play();
+        //pon.rewind();
         pre_beat_millis_B += beat_millis_B;
         beat_count_B++;
         small_count_B = beat_count_B * 21;
@@ -167,7 +173,7 @@ void draw() {
   int raw_count = 0;
   
   if(!(startflg)){
-    mode = 0;
+     mode = 0;
     myHue = slider1;
     raw_count = 0;
   }else if(A_start_time<=now_millis && now_millis<=A_stop_time){
