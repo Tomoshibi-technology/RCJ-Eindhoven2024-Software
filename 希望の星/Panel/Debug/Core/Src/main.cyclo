@@ -1,6 +1,6 @@
 ../Core/Src/main.cpp:95:6:void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef*)	1
 ../Core/Src/main.cpp:99:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	1
-../Core/Src/main.cpp:103:9:uint8_t readID()	5
+../Core/Src/main.cpp:103:9:uint8_t readID()	6
 ../Core/Src/main.cpp:130:5:int main()	23
 ../Core/Src/main.cpp:266:6:void SystemClock_Config()	3
 ../Core/Src/main.cpp:310:13:void MX_TIM3_Init()	6

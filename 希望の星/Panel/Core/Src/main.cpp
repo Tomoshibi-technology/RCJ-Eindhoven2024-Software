@@ -64,8 +64,8 @@ uint8_t Data[12];
 
 int8_t myid = 0;
 
-uint8_t circle_x = 0;
-uint8_t circle_z = 0;
+int16_t circle_x = 0;
+int16_t circle_z = 0;
 uint8_t circle_r = 0;
 uint8_t circle_h = 0;
 uint8_t circle_s = 255;
@@ -171,8 +171,8 @@ int main(void)
 	readBuf(&huart2, rxBuf, 64, Data, 12, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
 	myid = readID();
 
-	circle_x = Data[0];
-	circle_z = Data[1];
+	circle_x = Data[0]-100;
+	circle_z = Data[1]-100;
 	circle_r = Data[2];
 	circle_h = Data[3];
 	circle_s = Data[4];
@@ -228,8 +228,8 @@ int main(void)
 			  }
 
 			  //CIRCLE
-			  uint8_t cx = 47-circle_x;
-			  uint8_t cz = circle_z;
+			  int8_t cx = 47-circle_x;
+			  int8_t cz = circle_z;
 			  uint8_t cr = circle_r;
 			  uint8_t myx = x;
 			  uint8_t myz = z;
