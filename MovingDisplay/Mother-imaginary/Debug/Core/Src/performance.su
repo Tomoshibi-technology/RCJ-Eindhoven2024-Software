@@ -1,3 +1,4 @@
-../Core/Src/performance.cpp:4:1:PERFORMANCE::PERFORMANCE(uint32_t*)	16	static
-../Core/Src/performance.cpp:9:6:void PERFORMANCE::set_first_mtime()	16	static
-../Core/Src/performance.cpp:13:6:void PERFORMANCE::get_target_status(uint16_t*, uint32_t, int16_t*, uint8_t*)	24	static
+../Core/Src/performance.cpp:4:1:PERFORMANCE::PERFORMANCE(uint16_t*, uint8_t*, int16_t*, uint8_t*, int16_t*, int16_t*)	24	static
+../Core/Src/performance.cpp:14:5:int PERFORMANCE::get_shutdown()	16	static
+../Core/Src/performance.cpp:18:5:int PERFORMANCE::get_fixing()	16	static
+../Core/Src/performance.cpp:22:6:void PERFORMANCE::get_target_status(uint32_t)	16	static
