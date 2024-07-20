@@ -15,6 +15,7 @@ AudioPlayer pon;
 Minim minim;
 FFT fft;
 
+
 String bgm_ready = "Lightrail.mp3";
 String bgm_performanceA = "parformanceA.wav";
 String bgm_performanceB = "parformanceB.wav";
@@ -195,9 +196,9 @@ void draw() {
     }else if(beat_count_A <= 142){
       mode = 6;
       myHue = (130+beat_count_A*5)%255;
-    }else if(beat_count_A <= 158){ // バグ開始
+    }else if(beat_count_A <= 158){ // バグ開始 
       mode = 7;
-      myHue = (small_count_A*5 + 20)%255;
+      myHue = (small_count_A*30 + 20)%255;
     }else{
       mode = 8;
       myHue = 0;
@@ -288,7 +289,11 @@ void draw() {
 	//お絵描き
 
 	colorMode( HSB ); 
-	background(myHue,200,250); // 背景色をスライダーの値に変更
+  if(mode==9){
+  	background(myHue,0,0); // 背景色をスライダーの値に変更
+  }else{
+    background(myHue,200,250); // 背景色をスライダーの値に変更
+  }
 
 
   textlabel.setText(
