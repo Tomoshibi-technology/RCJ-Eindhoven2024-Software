@@ -26,15 +26,6 @@
 #include "STS.h"
 #include "BNO055.hpp"
 
-
-
-
-
-
-
-
-
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,14 +98,9 @@ static int16_t moveRotation = 0;
 
 uint8_t tweliteData[4] = {0};
 
-
-
-
-
-
-
-
-
+uint16_t beat = 0;
+uint8_t measureA = 0;
+uint8_t measureB = 0;
 
 /* USER CODE END PV */
 
@@ -133,6 +119,7 @@ void get_position(uint8_t servoID);
 void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 void twelite();
 void setMode();
+void modeError();
 void mode0();
 void mode1();
 void mode2();
@@ -149,7 +136,16 @@ void mode12();
 void mode13();
 void mode14();
 void mode15();
-void modeError();
+void mode16();
+void mode17();
+void mode18();
+void mode19();
+void mode20();
+void mode21();
+void mode22();
+void mode23();
+void mode24();
+void mode25();
 
 /* USER CODE END PFP */
 
@@ -170,15 +166,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     millis++;
   }
 }
-
-
-
-
-
-
-
-
-
 
 /* USER CODE END 0 */
 
@@ -256,15 +243,6 @@ int main(void)
     }
   }
 
-
-
-
-
-
-
-
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -287,86 +265,77 @@ int main(void)
     get_position(0);
     get_position(2);
 
-        twelite();
-        setMode();
-        if (mode == 0)
-        {
-          mode0();
-        }
-        else if (mode == 1 || millis < 7500)
-        {
-          mode1();
-        }
-        else if (mode == 2 || millis < 22500)
-        {
-          mode2();
-        }
-        else if (mode == 3 || millis < 37000)
-        {
-          mode3();
-        }
-        else if (mode == 4 || millis < 52000)
-        {
-          mode4();
-        }
-        else if (mode == 5 || millis < 60000)
-        {
-          mode5();
-        }
-        else if (mode == 6 || millis < 67000)
-        {
-          mode6();
-        }
-        else if (mode == 7 || millis < 74500)
-        {
-          mode7();
-        }
-        else if (mode == 8 || millis < 100000)
-        {
-          mode8();
-        }
-        else if (mode == 9 || millis < 200000)
-        {
-          mode9();
-        }
-        else if (mode == 10 || millis < 208500)
-        {
-          mode10();
-        }
-        else if (mode == 11 || millis < 222500)
-        {
-          mode11();
-        }
-        else if (mode == 12 || millis < 234700)
-        {
-          mode12();
-        }
-        else if (mode == 13 || millis < 238000)
-        {
-          mode13();
-        }
-        else if (mode == 14 || millis < 244500)
-        {
-          mode14();
-        }
-        else if (mode == 15 || millis >= 244500)
-        {
-          mode15();
-        }
-        else
-        {
-          modeError();
-        }
+    twelite();
+	setMode();
 
-
-
-
-
-
-
-
-
-
+	if (mode == 0)
+	{
+	  mode0();
+	}
+	else if (mode == 1 || millis < 7500)
+	{
+	  mode1();
+	}
+	else if (mode == 2 || millis < 22500)
+	{
+	  mode2();
+	}
+	else if (mode == 3 || millis < 37000)
+	{
+	  mode3();
+	}
+	else if (mode == 4 || millis < 52000)
+	{
+	  mode4();
+	}
+	else if (mode == 5 || millis < 60000)
+	{
+	  mode5();
+	}
+	else if (mode == 6 || millis < 67000)
+	{
+	  mode6();
+	}
+	else if (mode == 7 || millis < 74500)
+	{
+	  mode7();
+	}
+	else if (mode == 8 || millis < 100000)
+	{
+	  mode8();
+	}
+	else if (mode == 9 || millis < 200000)
+	{
+	  mode9();
+	}
+	else if (mode == 10 || millis < 208500)
+	{
+	  mode10();
+	}
+	else if (mode == 11 || millis < 222500)
+	{
+	  mode11();
+	}
+	else if (mode == 12 || millis < 234700)
+	{
+	  mode12();
+	}
+	else if (mode == 13 || millis < 238000)
+	{
+	  mode13();
+	}
+	else if (mode == 14 || millis < 244500)
+	{
+	  mode14();
+	}
+	else if (mode == 15 || millis >= 244500)
+	{
+	  mode15();
+	}
+	else
+	{
+	  modeError();
+	}
   }
   /* USER CODE END 3 */
 }
@@ -855,6 +824,15 @@ void twelite()
 
   mode = tweliteData[0] - 5;
   count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
+  beat = (int)(count / 20.32);
+  if (mode < 10)
+  {
+    measureA = beat / 4;
+  }
+  else
+  {
+    measureB = (beat - 18) / 4;
+  }
   hue = tweliteData[3];
 }
 
@@ -947,9 +925,9 @@ void mode0()
   for (uint8_t led = 0; led < 48; led++)
   {
     NeopixelTape.set_hsv(led, hue, 255, 100);
-    NeopixelTape.show();
-    HAL_Delay(1);
   }
+  NeopixelTape.show();
+  HAL_Delay(1);
 }
 
 void mode1()
@@ -1078,13 +1056,13 @@ void mode4()
     servo2.moveCont(500, 2048, servoPos2);
     servo3.moveStop3(500, 1800);
   }
-  if (ID == 3 && countLocal > 7500 && countLocal < 11400)
+  if (ID == 3 && countLocal > 7500 && countLocal < 11800)
   {
     servo0.moveCont(0, 2048, servoPos0);
     servo1.moveStop1(0, 2048);
     servo2.moveCont(0, 2048, servoPos2);
     servo3.moveStop3(0, 1800);
-    moveRotation = calc.calcRotation((countLocal - 7500) / 10, gyro);
+    moveRotation = calc.calcRotation((countLocal - 7500) / 11, gyro);
     sendData(0, 0, moveRotation);
     for (uint8_t led = 0; led < 16; led++)
     {
@@ -1093,22 +1071,28 @@ void mode4()
     NeopixelTape.show();
     HAL_Delay(1);
   }
-  if (ID == 3 && countLocal > 11400)
+  if (ID == 3 && countLocal > 11800)
   {
     sendData(0, 0, 0);
     servo0.moveCont(2000, 3072, servoPos0);
     servo1.moveStop1(2000, 1024);
     servo2.moveCont(1000, 2048, servoPos2);
     servo3.moveStop3(2000, 2800);
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, 0, 0, 0);
+    }
+    NeopixelTape.show();
+    HAL_Delay(1);
   }
 }
 
 void mode5()
 {
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
+  servo0.moveCont(2000, 2048, servoPos0);
+  servo1.moveStop1(2000, 2048);
+  servo2.moveCont(2000, 2048, servoPos2);
+  servo3.moveStop3(2000, 1800);
   for (uint8_t led = 0; led < 48; led++)
   {
     NeopixelTape.set_hsv(led, 0, 0, 0);
@@ -1119,13 +1103,35 @@ void mode5()
 
 void mode6()
 {
+  countLocal = millis - 60000;
   servo0.moveCont(0, 2048, servoPos0);
   servo1.moveStop1(0, 2048);
   servo2.moveCont(0, 2048, servoPos2);
   servo3.moveStop3(0, 1800);
-  for (uint8_t led = 0; led < 48; led++)
+  if ((countLocal / 3) % 360 > 300)
   {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
+    for (uint8_t led = 32; led < 48; led++)
+    {
+      NeopixelTape.set_hsv(led, hue, 255, 255);
+    }
+  }
+  else if ((countLocal / 3) % 360 > 30)
+  {
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, hue, 255, 255);
+      NeopixelTape.set_hsv(led + 16, hue, 255, calc.similarityNormal(led, 180, (countLocal / 3) % 360));
+      NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+    }
+  }
+  else
+  {
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, hue, 255, 0);
+      NeopixelTape.set_hsv(led + 16, hue, 255, 0);
+      NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+    }
   }
   NeopixelTape.show();
   HAL_Delay(1);
@@ -1133,12 +1139,12 @@ void mode6()
 
 void mode7()
 {
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
   static uint16_t randomNum = 0;
   randomNum += 47;
+  servo0.moveCont(0, 2000 + randomNum % 128, servoPos0);
+  servo1.moveStop1(0, 2000 + randomNum % 128);
+  servo2.moveCont(0, 2000 + randomNum % 128, servoPos2);
+  servo3.moveStop3(0, 2000 + randomNum % 128);
   for (uint8_t led = 0; led < 48; led++)
   {
     NeopixelTape.set_hsv(led, randomNum, randomNum, randomNum);
@@ -1157,9 +1163,33 @@ void mode8()
   HAL_Delay(1);
 }
 
-void mode9() {}
+void mode9()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
 
-void mode10() {}
+void mode10()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
 
 void mode11()
 {
@@ -1278,7 +1308,11 @@ void mode13()
 
 void mode14()
 {
-  countLocal = millis - 238000;
+  static uint16_t i = 60;
+  if (i > 1)
+  {
+    i--;
+  }
   sendData(0, 0, 0);
   servo0.moveCont(0, 6000, servoPos0);
   servo1.moveStop1(0, 2048);
@@ -1286,7 +1320,7 @@ void mode14()
   servo3.moveStop3(0, 1900);
   for (uint8_t led = 0; led < 48; led++)
   {
-    NeopixelTape.set_hsv(led, hue, 255, (7000 - countLocal) / 30);
+    NeopixelTape.set_hsv(led, hue, 255, i);
   }
   NeopixelTape.show();
   HAL_Delay(1);
@@ -1320,15 +1354,6 @@ void modeError()
   NeopixelTape.show();
   HAL_Delay(1);
 }
-
-
-
-
-
-
-
-
-
 
 /* USER CODE END 4 */
 
