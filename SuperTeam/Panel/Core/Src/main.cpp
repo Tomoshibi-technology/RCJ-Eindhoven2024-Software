@@ -173,8 +173,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	readBuf(&huart2, rxBuf, 64, Data, 30, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 50);
+	readBuf(&huart2, rxBuf, 128, Data, 30, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 60);
 	myid = readID();
+
 
 	circle_x = Data[0]-100;
 	circle_z = Data[1]-100;
@@ -190,8 +191,8 @@ int main(void)
 	square_v = Data[11];
 	for(uint8_t i=0; i<6; i++){
 		image_id[i] = Data[12+(i*3)];
-		image_id[x] = Data[12+(i*3)];
-		image_id[y] = Data[12+(i*3)];
+		image_x[i] = Data[13+(i*3)]-100;
+		image_z[i] = Data[14+(i*3)]-100;
 	}
 
     /* USER CODE END WHILE */
@@ -238,22 +239,53 @@ int main(void)
 			  }
 
 			  //CIRCLE
-			  int8_t cx = 47-circle_x;
-			  int8_t cz = circle_z;
-			  uint8_t cr = circle_r;
-			  uint8_t myx = x;
-			  uint8_t myz = z;
-			  float distance = (myx-cx)*(myx-cx)+(myz-cz)*(myz-cz);
-			  if(cr*cr>=distance){
-				hue = circle_h; sat = circle_s; val = circle_v;
+			  if(circle_r != 0){
+				  int8_t cx = 47-circle_x;
+				  int8_t cz = circle_z;
+				  uint8_t cr = circle_r;
+				  uint8_t myx = x;
+				  uint8_t myz = z;
+				  float distance = (myx-cx)*(myx-cx)+(myz-cz)*(myz-cz);
+				  if(cr*cr>=distance){
+					hue = circle_h; sat = circle_s; val = circle_v;
+				  }
 			  }
 
 			  //image
 			  for(uint8_t i=0; i<6; i++){
 				  if(image_id[i] != 0){
 					  int8_t cx = 47-image_x[i];
+					  int8_t cz = image_z[i];
+					  if(image_id[i] == 1){ //fish_15x6[6][15]
+						  // xが　cxからcx+15の間かどうか
+						  //cxからの距離
+						  int8_t xx = x - cx;
+						  int8_t zz = z - cz;
+						  if((0<=xx && xx<15) && (0<=zz && zz<6)){
+							  //範囲内。色をつけよう。
+							  if(fish_15x6[zz][xx] == 1){ //目ん玉
+								hue = 90; sat = 250; val = 200;
+							  }else if(fish_15x6[zz][xx] == 2){ //体
+								hue = 14; sat = 255; val = 150;
+							  }
+						  }
+					  }else if(image_id[i] == 2){ //fish_15x6[6][15]
+						  // xが　cxからcx+15の間かどうか
+						  //cxからの距離
+						  int8_t xx = x - cx;
+						  int8_t zz = z - cz;
+						  if((0<=xx && xx<15) && (0<=zz && zz<6)){
+							  //範囲内。色をつけよう。
+							  if(fish_15x6[zz][14-xx] == 1){ //目ん玉
+								hue = 90; sat = 250; val = 200;
+							  }else if(fish_15x6[zz][14-xx] == 2){ //体
+								hue = 14; sat = 255; val = 150;
+							  }
+						  }
+					  }
 				  }
 			  }
+
 			  //SET
 			  uint16_t pixel_num = 0;
 			  if(pz%2 == 0){
