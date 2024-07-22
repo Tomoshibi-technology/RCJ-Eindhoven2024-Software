@@ -28,6 +28,15 @@
 #include "STS.h"
 #include "BNO055.hpp"
 
+
+
+
+
+
+
+
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,12 +109,23 @@ uint16_t countLocal = 0;
 
 uint8_t tweliteData[4] = {0};
 
+<<<<<<< HEAD
 uint16_t beat = 0;
 uint8_t measureA = 0;
 uint8_t measureB = 0;
 uint8_t gesture = 250;
 
 uint8_t pfmStatus = 0;
+=======
+
+
+
+
+
+
+
+
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
 
 /* USER CODE END PV */
 
@@ -124,6 +144,7 @@ void get_position(uint8_t servoID);
 void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 void twelite();
 void setMode();
+<<<<<<< HEAD
 // void modeError();
 // void mode0();
 // void mode1();
@@ -154,6 +175,25 @@ void setMode();
 void gesture0();
 void gesture1();
 void gesture2();
+=======
+void mode0();
+void mode1();
+void mode2();
+void mode3();
+void mode4();
+void mode5();
+void mode6();
+void mode7();
+void mode8();
+void mode9();
+void mode10();
+void mode11();
+void mode12();
+void mode13();
+void mode14();
+void mode15();
+void modeError();
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
 
 /* USER CODE END PFP */
 
@@ -174,6 +214,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     millis++;
   }
 }
+
+
+
+
+
+
+
+
+
 
 /* USER CODE END 0 */
 
@@ -251,6 +300,15 @@ int main(void)
     }
   }
 
+
+
+
+
+
+
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -273,6 +331,7 @@ int main(void)
     get_position(0);
     get_position(2);
 
+<<<<<<< HEAD
     twelite();
     //	setMode();
 
@@ -314,6 +373,88 @@ int main(void)
       servo2.moveCont(500, 2047, servoPos2);
       servo3.moveStop3(500, 1800);
     }
+=======
+        twelite();
+        setMode();
+        if (mode == 0)
+        {
+          mode0();
+        }
+        else if (mode == 1 || millis < 7500)
+        {
+          mode1();
+        }
+        else if (mode == 2 || millis < 22500)
+        {
+          mode2();
+        }
+        else if (mode == 3 || millis < 37000)
+        {
+          mode3();
+        }
+        else if (mode == 4 || millis < 52000)
+        {
+          mode4();
+        }
+        else if (mode == 5 || millis < 60000)
+        {
+          mode5();
+        }
+        else if (mode == 6 || millis < 67000)
+        {
+          mode6();
+        }
+        else if (mode == 7 || millis < 74500)
+        {
+          mode7();
+        }
+        else if (mode == 8 || millis < 100000)
+        {
+          mode8();
+        }
+        else if (mode == 9 || millis < 200000)
+        {
+          mode9();
+        }
+        else if (mode == 10 || millis < 208500)
+        {
+          mode10();
+        }
+        else if (mode == 11 || millis < 222500)
+        {
+          mode11();
+        }
+        else if (mode == 12 || millis < 234700)
+        {
+          mode12();
+        }
+        else if (mode == 13 || millis < 238000)
+        {
+          mode13();
+        }
+        else if (mode == 14 || millis < 244500)
+        {
+          mode14();
+        }
+        else if (mode == 15 || millis >= 244500)
+        {
+          mode15();
+        }
+        else
+        {
+          modeError();
+        }
+
+
+
+
+
+
+
+
+
+
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
   }
   /* USER CODE END 3 */
 }
@@ -800,6 +941,7 @@ void twelite()
     }
   }
 
+<<<<<<< HEAD
   //  mode = tweliteData[0] - 5;
   //  count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
   //  beat = (int)(count / 20.32);
@@ -812,6 +954,10 @@ void twelite()
   //  {
   //    measureB = (beat - 18) / 4;
   //  }
+=======
+  mode = tweliteData[0] - 5;
+  count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
   hue = tweliteData[3];
 }
 
@@ -821,6 +967,7 @@ void gesture0()
   static uint16_t preTime = millis;
   if (nowTime - preTime < 1500)
   {
+<<<<<<< HEAD
     servo0.moveCont(1000, 3071, servoPos0);
     servo1.moveStop1(1000, 2047);
     servo2.moveCont(500, 2047, servoPos2);
@@ -829,6 +976,106 @@ void gesture0()
     {
       NeopixelTape.set_hsv(led, 127, 255, 255);
     }
+=======
+    millis = 0;
+    modeStatus++;
+  }
+  if (mode == 2 && modeStatus == 1)
+  {
+    millis = 7500;
+    modeStatus++;
+  }
+  if (mode == 3 && modeStatus == 2)
+  {
+    millis = 22500;
+    modeStatus++;
+  }
+  if (mode == 4 && modeStatus == 3)
+  {
+    millis = 37000;
+    modeStatus++;
+  }
+  if (mode == 5 && modeStatus == 4)
+  {
+    millis = 52000;
+    modeStatus++;
+  }
+  if (mode == 6 && modeStatus == 5)
+  {
+    millis = 60000;
+    modeStatus++;
+  }
+  if (mode == 7 && modeStatus == 6)
+  {
+    millis = 67000;
+    modeStatus++;
+  }
+  if (mode == 8 && modeStatus == 7)
+  {
+    millis = 745000;
+    modeStatus++;
+  }
+  if (mode == 9 && modeStatus == 8)
+  {
+    millis = 1000000;
+    modeStatus++;
+  }
+  if (mode == 10 && modeStatus == 11)
+  {
+    millis = 2000000;
+    modeStatus++;
+  }
+  if (mode == 11 && modeStatus == 10)
+  {
+    millis = 2008500;
+    modeStatus++;
+  }
+  if (mode == 12 && modeStatus == 11)
+  {
+    millis = 2022500;
+    modeStatus++;
+  }
+  if (mode == 13 && modeStatus == 12)
+  {
+    millis = 2034700;
+    modeStatus++;
+  }
+  if (mode == 14 && modeStatus == 13)
+  {
+    millis = 2038000;
+    modeStatus++;
+  }
+  if (mode == 15 && modeStatus == 14)
+  {
+    millis = 2044500;
+    modeStatus++;
+  }
+}
+
+void mode0()
+{
+  servo0.moveCont(500, 2048, servoPos0);
+  servo1.moveStop1(500, 2048);
+  servo2.moveCont(500, 2048, servoPos2);
+  servo3.moveStop3(500, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, hue, 255, 100);
+    NeopixelTape.show();
+    HAL_Delay(1);
+  }
+}
+
+void mode1()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
     NeopixelTape.show();
     HAL_Delay(1);
   }
@@ -925,6 +1172,7 @@ void gesture2()
     NeopixelTape.show();
     HAL_Delay(1);
   }
+<<<<<<< HEAD
   else
   {
     preTime = millis;
@@ -1449,6 +1697,266 @@ void gesture2()
 //   NeopixelTape.show();
 //   HAL_Delay(1);
 // }
+=======
+  if (ID == 3 && countLocal < 7500)
+  {
+    servo0.moveCont(500, 2048, servoPos0);
+    servo1.moveStop1(500, 2048);
+    servo2.moveCont(500, 2048, servoPos2);
+    servo3.moveStop3(500, 1800);
+  }
+  if (ID == 3 && countLocal > 7500 && countLocal < 11400)
+  {
+    servo0.moveCont(0, 2048, servoPos0);
+    servo1.moveStop1(0, 2048);
+    servo2.moveCont(0, 2048, servoPos2);
+    servo3.moveStop3(0, 1800);
+    moveRotation = calc.calcRotation((countLocal - 7500) / 10, gyro);
+    sendData(0, 0, moveRotation);
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, calc.similarityRise(led, (ledPos0 + 180) % 360, 90, hue, 100), 255, calc.similarityNormal(led, (ledPos0 + 180) % 360, 90));
+    }
+    NeopixelTape.show();
+    HAL_Delay(1);
+  }
+  if (ID == 3 && countLocal > 11400)
+  {
+    sendData(0, 0, 0);
+    servo0.moveCont(2000, 3072, servoPos0);
+    servo1.moveStop1(2000, 1024);
+    servo2.moveCont(1000, 2048, servoPos2);
+    servo3.moveStop3(2000, 2800);
+  }
+}
+
+void mode5()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode6()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode7()
+{
+  servo0.moveCont(0, 2048, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 2048, servoPos2);
+  servo3.moveStop3(0, 1800);
+  static uint16_t randomNum = 0;
+  randomNum += 47;
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, randomNum, randomNum, randomNum);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode8()
+{
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode9() {}
+
+void mode10() {}
+
+void mode11()
+{
+  countLocal = millis - 208500;
+  static uint8_t status = 0;
+  static uint16_t degree = 0;
+
+  servo0.moveCont(1000, countLocal % 2000 * 2, servoPos0);
+  servo1.moveStop1(1000, countLocal % 2000 + 1100);
+  servo2.moveCont(1000, countLocal % 2000 * 2, servoPos2);
+  servo3.moveStop3(1000, countLocal % 2000 / 2 + 1900);
+
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
+    NeopixelTape.show();
+    HAL_Delay(1);
+  }
+}
+
+void mode12()
+{
+  countLocal = millis - 222500;
+  static int16_t i = 8;
+  if (countLocal % 6000 < 3000)
+  {
+    servo0.moveCont(1500, 8191, servoPos0);
+    servo2.moveCont(1500, 8191, servoPos2);
+
+    if (i != 0)
+    {
+      i += 8;
+      if (i >= 180)
+      {
+        i -= 360;
+      }
+    }
+
+    moveRotation = calc.calcRotation(i, gyro);
+
+    if (moveRotation > 0)
+    {
+      moveRotation += 10;
+    }
+    if (moveRotation < 0)
+    {
+      moveRotation -= 10;
+    }
+
+    sendData(0, 0, moveRotation);
+
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
+      NeopixelTape.show();
+    }
+    for (uint8_t led = 32; led < 48; led++)
+    {
+      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
+      NeopixelTape.show();
+    }
+  }
+  else
+  {
+    servo0.moveCont(1500, 0, servoPos0);
+    servo2.moveCont(1500, 0, servoPos2);
+
+    if (i != 8)
+    {
+      i -= 8;
+      if (i < -180)
+      {
+        i += 360;
+      }
+    }
+
+    moveRotation = calc.calcRotation(i, gyro);
+
+    if (moveRotation > 0)
+    {
+      moveRotation += 10;
+    }
+    if (moveRotation < 0)
+    {
+      moveRotation -= 10;
+    }
+
+    sendData(0, 0, moveRotation);
+
+    for (uint8_t led = 0; led < 16; led++)
+    {
+      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+      NeopixelTape.show();
+    }
+    for (uint8_t led = 32; led < 48; led++)
+    {
+      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+      NeopixelTape.show();
+    }
+  }
+}
+
+void mode13()
+{
+  countLocal = millis - 234700;
+  sendData(0, 0, 60);
+  servo0.moveCont(1000, countLocal * 2, servoPos0);
+  servo2.moveCont(1000, countLocal * 2, servoPos2);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode14()
+{
+  countLocal = millis - 238000;
+  sendData(0, 0, 0);
+  servo0.moveCont(0, 6000, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 6000, servoPos2);
+  servo3.moveStop3(0, 1900);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, hue, 255, (7000 - countLocal) / 30);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void mode15()
+{
+  countLocal = millis - 244500;
+  servo0.moveCont(0, 6000, servoPos0);
+  servo1.moveStop1(0, 2048);
+  servo2.moveCont(0, 6000, servoPos2);
+  servo3.moveStop3(0, 1900);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, hue, 255, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+
+void modeError()
+{
+  servo0.moveCont(500, 2048, servoPos0);
+  servo1.moveStop1(500, 2048);
+  servo2.moveCont(500, 2048, servoPos2);
+  servo3.moveStop3(500, 1800);
+  for (uint8_t led = 0; led < 48; led++)
+  {
+    NeopixelTape.set_hsv(led, 0, 0, 0);
+  }
+  NeopixelTape.show();
+  HAL_Delay(1);
+}
+>>>>>>> parent of feb78f6 (本番パフォーマンス)
+
+
+
+
+
+
+
+
+
 
 /* USER CODE END 4 */
 
