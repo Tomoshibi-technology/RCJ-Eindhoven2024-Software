@@ -1,3 +1,5 @@
+
+
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
@@ -93,14 +95,17 @@ uint32_t millis = 0;
 
 uint16_t countLocal = 0;
 
-static int16_t i = 8;
-static int16_t moveRotation = 0;
+// static int16_t i = 8;
+// static int16_t moveRotation = 0;
 
 uint8_t tweliteData[4] = {0};
 
 uint16_t beat = 0;
 uint8_t measureA = 0;
 uint8_t measureB = 0;
+uint8_t gesture = 250;
+
+uint8_t pfmStatus = 0;
 
 /* USER CODE END PV */
 
@@ -119,33 +124,36 @@ void get_position(uint8_t servoID);
 void sendData(uint16_t angle, uint8_t speed, int16_t rotation);
 void twelite();
 void setMode();
-void modeError();
-void mode0();
-void mode1();
-void mode2();
-void mode3();
-void mode4();
-void mode5();
-void mode6();
-void mode7();
-void mode8();
-void mode9();
-void mode10();
-void mode11();
-void mode12();
-void mode13();
-void mode14();
-void mode15();
-void mode16();
-void mode17();
-void mode18();
-void mode19();
-void mode20();
-void mode21();
-void mode22();
-void mode23();
-void mode24();
-void mode25();
+// void modeError();
+// void mode0();
+// void mode1();
+// void mode2();
+// void mode3();
+// void mode4();
+// void mode5();
+// void mode6();
+// void mode7();
+// void mode8();
+// void mode9();
+// void mode10();
+// void mode11();
+// void mode12();
+// void mode13();
+// void mode14();
+// void mode15();
+// void mode16();
+// void mode17();
+// void mode18();
+// void mode19();
+// void mode20();
+// void mode21();
+// void mode22();
+// void mode23();
+// void mode24();
+// void mode25();
+void gesture0();
+void gesture1();
+void gesture2();
 
 /* USER CODE END PFP */
 
@@ -207,23 +215,23 @@ int main(void)
   /* USER CODE BEGIN 2 */
   NeopixelTape.init();
 
-  if (HAL_GPIO_ReadPin(dipsw1_GPIO_Port, dipsw1_Pin) == 1)
-  {
-    ID = 1;
-  }
-  else if (HAL_GPIO_ReadPin(dipsw2_GPIO_Port, dipsw2_Pin) == 1)
-  {
-    ID = 2;
-  }
-  else if (HAL_GPIO_ReadPin(dipsw3_GPIO_Port, dipsw3_Pin) == 1)
-  {
-    ID = 3;
-  }
-  else
-  {
-    while (1)
-      ;
-  }
+  //  if (HAL_GPIO_ReadPin(dipsw1_GPIO_Port, dipsw1_Pin) == 1)
+  //  {
+  //    ID = 1;
+  //  }
+  //  else if (HAL_GPIO_ReadPin(dipsw2_GPIO_Port, dipsw2_Pin) == 1)
+  //  {
+  //    ID = 2;
+  //  }
+  //  else if (HAL_GPIO_ReadPin(dipsw3_GPIO_Port, dipsw3_Pin) == 1)
+  //  {
+  //    ID = 3;
+  //  }
+  //  else
+  //  {
+  //    while (1)
+  //      ;
+  //  }
 
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_UART_Receive_DMA(&huart2, rxBuf, sizeof(rxBuf));
@@ -266,76 +274,46 @@ int main(void)
     get_position(2);
 
     twelite();
-	setMode();
+    //	setMode();
 
-	if (mode == 0)
-	{
-	  mode0();
-	}
-	else if (mode == 1 || millis < 7500)
-	{
-	  mode1();
-	}
-	else if (mode == 2 || millis < 22500)
-	{
-	  mode2();
-	}
-	else if (mode == 3 || millis < 37000)
-	{
-	  mode3();
-	}
-	else if (mode == 4 || millis < 52000)
-	{
-	  mode4();
-	}
-	else if (mode == 5 || millis < 60000)
-	{
-	  mode5();
-	}
-	else if (mode == 6 || millis < 67000)
-	{
-	  mode6();
-	}
-	else if (mode == 7 || millis < 74500)
-	{
-	  mode7();
-	}
-	else if (mode == 8 || millis < 100000)
-	{
-	  mode8();
-	}
-	else if (mode == 9 || millis < 200000)
-	{
-	  mode9();
-	}
-	else if (mode == 10 || millis < 208500)
-	{
-	  mode10();
-	}
-	else if (mode == 11 || millis < 222500)
-	{
-	  mode11();
-	}
-	else if (mode == 12 || millis < 234700)
-	{
-	  mode12();
-	}
-	else if (mode == 13 || millis < 238000)
-	{
-	  mode13();
-	}
-	else if (mode == 14 || millis < 244500)
-	{
-	  mode14();
-	}
-	else if (mode == 15 || millis >= 244500)
-	{
-	  mode15();
-	}
-	else
-	{
-	  modeError();
-	}
+    if (gesture == 0)
+    {
+      pfmStatus = 1;
+    }
+    if (gesture == 1)
+    {
+      pfmStatus = 2;
+    }
+    if (gesture == 2)
+    {
+      pfmStatus = 3;
+    }
+
+    if (pfmStatus == 1)
+    {
+      gesture0();
+    }
+    else if (pfmStatus == 2)
+    {
+      gesture1();
+    }
+    else if (pfmStatus == 3)
+    {
+      gesture2();
+    }
+    else
+    {
+      for (uint8_t led = 0; led < 48; led++)
+      {
+        NeopixelTape.set_hsv(led, 180, 255, 255);
+      }
+      NeopixelTape.show();
+      HAL_Delay(1);
+      servo0.moveCont(1000, 2047, servoPos0);
+      servo1.moveStop1(1000, 2047);
+      servo2.moveCont(500, 2047, servoPos2);
+      servo3.moveStop3(500, 1800);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -822,173 +800,86 @@ void twelite()
     }
   }
 
-  mode = tweliteData[0] - 5;
-  count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
-  beat = (int)(count / 20.32);
-  if (mode < 10)
-  {
-    measureA = beat / 4;
-  }
-  else
-  {
-    measureB = (beat - 18) / 4;
-  }
+  //  mode = tweliteData[0] - 5;
+  //  count = (tweliteData[1] - 5) * 240 + tweliteData[2] - 5;
+  //  beat = (int)(count / 20.32);
+  gesture = tweliteData[1] - 5;
+  //  if (mode < 10)
+  //  {
+  //    measureA = beat / 4;
+  //  }
+  //  else
+  //  {
+  //    measureB = (beat - 18) / 4;
+  //  }
   hue = tweliteData[3];
 }
 
-void setMode()
+void gesture0()
 {
-  static uint8_t modeStatus = 0;
-  if (mode == 1 && modeStatus == 0)
+  uint16_t nowTime = millis;
+  static uint16_t preTime = millis;
+  if (nowTime - preTime < 1500)
   {
-    millis = 0;
-    modeStatus++;
-  }
-  if (mode == 2 && modeStatus == 1)
-  {
-    millis = 7500;
-    modeStatus++;
-  }
-  if (mode == 3 && modeStatus == 2)
-  {
-    millis = 22500;
-    modeStatus++;
-  }
-  if (mode == 4 && modeStatus == 3)
-  {
-    millis = 37000;
-    modeStatus++;
-  }
-  if (mode == 5 && modeStatus == 4)
-  {
-    millis = 52000;
-    modeStatus++;
-  }
-  if (mode == 6 && modeStatus == 5)
-  {
-    millis = 60000;
-    modeStatus++;
-  }
-  if (mode == 7 && modeStatus == 6)
-  {
-    millis = 67000;
-    modeStatus++;
-  }
-  if (mode == 8 && modeStatus == 7)
-  {
-    millis = 745000;
-    modeStatus++;
-  }
-  if (mode == 9 && modeStatus == 8)
-  {
-    millis = 1000000;
-    modeStatus++;
-  }
-  if (mode == 10 && modeStatus == 11)
-  {
-    millis = 2000000;
-    modeStatus++;
-  }
-  if (mode == 11 && modeStatus == 10)
-  {
-    millis = 2008500;
-    modeStatus++;
-  }
-  if (mode == 12 && modeStatus == 11)
-  {
-    millis = 2022500;
-    modeStatus++;
-  }
-  if (mode == 13 && modeStatus == 12)
-  {
-    millis = 2034700;
-    modeStatus++;
-  }
-  if (mode == 14 && modeStatus == 13)
-  {
-    millis = 2038000;
-    modeStatus++;
-  }
-  if (mode == 15 && modeStatus == 14)
-  {
-    millis = 2044500;
-    modeStatus++;
-  }
-}
-
-void mode0()
-{
-  servo0.moveCont(500, 2048, servoPos0);
-  servo1.moveStop1(500, 2048);
-  servo2.moveCont(500, 2048, servoPos2);
-  servo3.moveStop3(500, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, hue, 255, 100);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode1()
-{
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
+    servo0.moveCont(1000, 3071, servoPos0);
+    servo1.moveStop1(1000, 2047);
+    servo2.moveCont(500, 2047, servoPos2);
+    servo3.moveStop3(1000, 1800);
+    for (uint8_t led = 0; led < 48; led++)
+    {
+      NeopixelTape.set_hsv(led, 127, 255, 255);
+    }
     NeopixelTape.show();
     HAL_Delay(1);
   }
-}
-
-void mode2()
-{
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
-}
-
-void mode3()
-{
-  countLocal = millis - 22500;
-  if (ID == 1)
+  else if (nowTime - preTime < 3000)
   {
-    for (uint8_t led = 0; led < 16; led++)
+    servo0.moveCont(1000, 1023, servoPos0);
+    servo1.moveStop1(1000, 2047);
+    servo2.moveCont(500, 2047, servoPos2);
+    servo3.moveStop3(1000, 3000);
+    for (uint8_t led = 0; led < 48; led++)
     {
-      if (countLocal < 10000)
-      {
-        servo0.moveCont(0, 2048, servoPos0);
-        servo1.moveStop1(0, 2048);
-        servo2.moveCont(0, 2048, servoPos2);
-        servo3.moveStop3(0, 1800);
-        NeopixelTape.set_hsv(led, hue, 255, 255);
-        NeopixelTape.set_hsv(led + 16, hue, 255, calc.similarityNormal(led, 180, countLocal / 30));
-        NeopixelTape.set_hsv(led + 32, hue, 255, 0);
-      }
-      if (countLocal > 10000 && countLocal < 12550)
-      {
-        servo0.moveCont(0, 2048, servoPos0);
-        servo1.moveStop1(0, 2048);
-        servo2.moveCont(0, 2048, servoPos2);
-        servo3.moveStop3(0, 1800);
-        NeopixelTape.set_hsv(led, hue, 255, 255);
-        NeopixelTape.set_hsv(led + 16, hue, 255, 255);
-        NeopixelTape.set_hsv(led + 32, hue, 255, (countLocal - 10000) / 10);
-      }
-      if (countLocal > 12550)
-      {
-        servo0.moveCont(500, 2048, servoPos0);
-        servo1.moveStop1(2000, 1024);
-        servo2.moveCont(500, 2048, servoPos2);
-        servo3.moveStop3(2000, 2800);
-        NeopixelTape.set_hsv(led, hue, 255, 0);
-        NeopixelTape.set_hsv(led + 16, hue, 255, 0);
-        NeopixelTape.set_hsv(led + 32, hue, 255, 0);
-      }
+      NeopixelTape.set_hsv(led, 127, 255, 255);
+    }
+    NeopixelTape.show();
+    HAL_Delay(1);
+  }
+  else
+  {
+    preTime = millis;
+  }
+}
+
+void gesture1()
+{
+  uint16_t nowTime1 = millis;
+  static uint16_t preTime1 = millis;
+  uint16_t nowTime2 = millis;
+  static uint16_t preTime2 = millis;
+  if (nowTime1 - preTime1 < 4000)
+  {
+    servo0.moveCont(1000, 8191, servoPos0);
+    servo1.moveStop1(1000, 1000);
+    servo2.moveCont(500, 4095, servoPos2);
+    servo3.moveStop3(100, 1800);
+  }
+  else if (nowTime1 - preTime1 < 8000)
+  {
+    servo0.moveCont(1000, 0, servoPos0);
+    servo1.moveStop1(1000, 3000);
+    servo2.moveCont(500, 0, servoPos2);
+    servo3.moveStop3(100, 1800);
+  }
+  else
+  {
+    preTime1 = millis;
+  }
+  if (nowTime2 - preTime2 <= 53000)
+  {
+    for (uint8_t led = 0; led < 48; led++)
+    {
+      NeopixelTape.set_hsv(led, 180 - (nowTime2 - preTime2) / 1000, 255, 255);
     }
     NeopixelTape.show();
     HAL_Delay(1);
@@ -997,363 +888,567 @@ void mode3()
   {
     for (uint8_t led = 0; led < 48; led++)
     {
-      NeopixelTape.set_hsv(led, 0, 0, 0);
+      NeopixelTape.set_hsv(led, 127, 255, 255);
     }
     NeopixelTape.show();
     HAL_Delay(1);
-    servo0.moveCont(500, 2048, servoPos0);
-    servo1.moveStop1(500, 2048);
-    servo2.moveCont(500, 2048, servoPos2);
-    servo3.moveStop3(500, 1800);
   }
 }
 
-void mode4()
+void gesture2()
 {
-  countLocal = millis - 37000;
-  if (ID == 1)
+  uint16_t nowTime = millis;
+  static uint16_t preTime = millis;
+  if (nowTime - preTime < 1500)
   {
+    servo0.moveCont(1000, 2047, servoPos0);
+    servo1.moveStop1(1000, 1000);
+    servo2.moveCont(500, 2047, servoPos2);
+    servo3.moveStop3(500, 1800);
     for (uint8_t led = 0; led < 48; led++)
     {
-      NeopixelTape.set_hsv(led, 0, 0, 0);
+      NeopixelTape.set_hsv(led, 127, 255, 255);
     }
     NeopixelTape.show();
     HAL_Delay(1);
-    servo0.moveCont(500, 2048, servoPos0);
-    servo1.moveStop1(500, 1000);
-    servo2.moveCont(500, 2048, servoPos2);
+  }
+  else if (nowTime - preTime < 3000)
+  {
+    servo0.moveCont(1000, 2047, servoPos0);
+    servo1.moveStop1(1000, 3000);
+    servo2.moveCont(500, 2047, servoPos2);
     servo3.moveStop3(500, 3000);
-  }
-  if (ID == 2 && countLocal < 7500)
-  {
-    servo0.moveCont(1000, 6144, servoPos0);
-    servo1.moveStop1(500, 2048);
-    servo2.moveCont(1000, 6144, servoPos2);
-    servo3.moveStop3(500, 1800);
     for (uint8_t led = 0; led < 48; led++)
     {
-      NeopixelTape.set_hsv(led, hue, 255, 100);
-      NeopixelTape.show();
-    }
-  }
-  if (ID == 2 && countLocal > 7500)
-  {
-    servo0.moveCont(1000, 6144, servoPos0);
-    servo1.moveStop1(2000, 1000);
-    servo2.moveCont(1000, 6144, servoPos2);
-    servo3.moveStop3(2000, 3000);
-    for (uint8_t led = 0; led < 48; led++)
-    {
-      NeopixelTape.set_hsv(led, hue, 255, 0);
+      NeopixelTape.set_hsv(led, 127, 255, 255);
     }
     NeopixelTape.show();
     HAL_Delay(1);
-  }
-  if (ID == 3 && countLocal < 7500)
-  {
-    servo0.moveCont(500, 2048, servoPos0);
-    servo1.moveStop1(500, 2048);
-    servo2.moveCont(500, 2048, servoPos2);
-    servo3.moveStop3(500, 1800);
-  }
-  if (ID == 3 && countLocal > 7500 && countLocal < 11800)
-  {
-    servo0.moveCont(0, 2048, servoPos0);
-    servo1.moveStop1(0, 2048);
-    servo2.moveCont(0, 2048, servoPos2);
-    servo3.moveStop3(0, 1800);
-    moveRotation = calc.calcRotation((countLocal - 7500) / 11, gyro);
-    sendData(0, 0, moveRotation);
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, calc.similarityRise(led, (ledPos0 + 180) % 360, 90, hue, 100), 255, calc.similarityNormal(led, (ledPos0 + 180) % 360, 90));
-    }
-    NeopixelTape.show();
-    HAL_Delay(1);
-  }
-  if (ID == 3 && countLocal > 11800)
-  {
-    sendData(0, 0, 0);
-    servo0.moveCont(2000, 3072, servoPos0);
-    servo1.moveStop1(2000, 1024);
-    servo2.moveCont(1000, 2048, servoPos2);
-    servo3.moveStop3(2000, 2800);
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, 0, 0, 0);
-    }
-    NeopixelTape.show();
-    HAL_Delay(1);
-  }
-}
-
-void mode5()
-{
-  servo0.moveCont(2000, 2048, servoPos0);
-  servo1.moveStop1(2000, 2048);
-  servo2.moveCont(2000, 2048, servoPos2);
-  servo3.moveStop3(2000, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode6()
-{
-  countLocal = millis - 60000;
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
-  if ((countLocal / 3) % 360 > 300)
-  {
-    for (uint8_t led = 32; led < 48; led++)
-    {
-      NeopixelTape.set_hsv(led, hue, 255, 255);
-    }
-  }
-  else if ((countLocal / 3) % 360 > 30)
-  {
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, hue, 255, 255);
-      NeopixelTape.set_hsv(led + 16, hue, 255, calc.similarityNormal(led, 180, (countLocal / 3) % 360));
-      NeopixelTape.set_hsv(led + 32, hue, 255, 0);
-    }
   }
   else
   {
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, hue, 255, 0);
-      NeopixelTape.set_hsv(led + 16, hue, 255, 0);
-      NeopixelTape.set_hsv(led + 32, hue, 255, 0);
-    }
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode7()
-{
-  static uint16_t randomNum = 0;
-  randomNum += 47;
-  servo0.moveCont(0, 2000 + randomNum % 128, servoPos0);
-  servo1.moveStop1(0, 2000 + randomNum % 128);
-  servo2.moveCont(0, 2000 + randomNum % 128, servoPos2);
-  servo3.moveStop3(0, 2000 + randomNum % 128);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, randomNum, randomNum, randomNum);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode8()
-{
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode9()
-{
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode10()
-{
-  servo0.moveCont(0, 2048, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 2048, servoPos2);
-  servo3.moveStop3(0, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode11()
-{
-  countLocal = millis - 208500;
-  static uint8_t status = 0;
-  static uint16_t degree = 0;
-
-  servo0.moveCont(1000, countLocal % 2000 * 2, servoPos0);
-  servo1.moveStop1(1000, countLocal % 2000 + 1100);
-  servo2.moveCont(1000, countLocal % 2000 * 2, servoPos2);
-  servo3.moveStop3(1000, countLocal % 2000 / 2 + 1900);
-
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
-    NeopixelTape.show();
-    HAL_Delay(1);
+    preTime = millis;
   }
 }
 
-void mode12()
-{
-  countLocal = millis - 222500;
-  static int16_t i = 8;
-  if (countLocal % 6000 < 3000)
-  {
-    servo0.moveCont(1500, 8191, servoPos0);
-    servo2.moveCont(1500, 8191, servoPos2);
-
-    if (i != 0)
-    {
-      i += 8;
-      if (i >= 180)
-      {
-        i -= 360;
-      }
-    }
-
-    moveRotation = calc.calcRotation(i, gyro);
-
-    if (moveRotation > 0)
-    {
-      moveRotation += 10;
-    }
-    if (moveRotation < 0)
-    {
-      moveRotation -= 10;
-    }
-
-    sendData(0, 0, moveRotation);
-
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
-      NeopixelTape.show();
-    }
-    for (uint8_t led = 32; led < 48; led++)
-    {
-      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
-      NeopixelTape.show();
-    }
-  }
-  else
-  {
-    servo0.moveCont(1500, 0, servoPos0);
-    servo2.moveCont(1500, 0, servoPos2);
-
-    if (i != 8)
-    {
-      i -= 8;
-      if (i < -180)
-      {
-        i += 360;
-      }
-    }
-
-    moveRotation = calc.calcRotation(i, gyro);
-
-    if (moveRotation > 0)
-    {
-      moveRotation += 10;
-    }
-    if (moveRotation < 0)
-    {
-      moveRotation -= 10;
-    }
-
-    sendData(0, 0, moveRotation);
-
-    for (uint8_t led = 0; led < 16; led++)
-    {
-      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
-      NeopixelTape.show();
-    }
-    for (uint8_t led = 32; led < 48; led++)
-    {
-      NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
-      NeopixelTape.show();
-    }
-  }
-}
-
-void mode13()
-{
-  countLocal = millis - 234700;
-  sendData(0, 0, 60);
-  servo0.moveCont(1000, countLocal * 2, servoPos0);
-  servo2.moveCont(1000, countLocal * 2, servoPos2);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode14()
-{
-  static uint16_t i = 60;
-  if (i > 1)
-  {
-    i--;
-  }
-  sendData(0, 0, 0);
-  servo0.moveCont(0, 6000, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 6000, servoPos2);
-  servo3.moveStop3(0, 1900);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, hue, 255, i);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void mode15()
-{
-  countLocal = millis - 244500;
-  servo0.moveCont(0, 6000, servoPos0);
-  servo1.moveStop1(0, 2048);
-  servo2.moveCont(0, 6000, servoPos2);
-  servo3.moveStop3(0, 1900);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, hue, 255, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
-
-void modeError()
-{
-  servo0.moveCont(500, 2048, servoPos0);
-  servo1.moveStop1(500, 2048);
-  servo2.moveCont(500, 2048, servoPos2);
-  servo3.moveStop3(500, 1800);
-  for (uint8_t led = 0; led < 48; led++)
-  {
-    NeopixelTape.set_hsv(led, 0, 0, 0);
-  }
-  NeopixelTape.show();
-  HAL_Delay(1);
-}
+// void setMode()
+//{
+//   static uint8_t modeStatus = 0;
+//   if (mode == 1 && modeStatus == 0)
+//   {
+//     millis = 0;
+//     modeStatus++;
+//   }
+//   if (mode == 2 && modeStatus == 1)
+//   {
+//     millis = 7500;
+//     modeStatus++;
+//   }
+//   if (mode == 3 && modeStatus == 2)
+//   {
+//     millis = 22500;
+//     modeStatus++;
+//   }
+//   if (mode == 4 && modeStatus == 3)
+//   {
+//     millis = 37000;
+//     modeStatus++;
+//   }
+//   if (mode == 5 && modeStatus == 4)
+//   {
+//     millis = 52000;
+//     modeStatus++;
+//   }
+//   if (mode == 6 && modeStatus == 5)
+//   {
+//     millis = 60000;
+//     modeStatus++;
+//   }
+//   if (mode == 7 && modeStatus == 6)
+//   {
+//     millis = 67000;
+//     modeStatus++;
+//   }
+//   if (mode == 8 && modeStatus == 7)
+//   {
+//     millis = 745000;
+//     modeStatus++;
+//   }
+//   if (mode == 9 && modeStatus == 8)
+//   {
+//     millis = 1000000;
+//     modeStatus++;
+//   }
+//   if (mode == 10 && modeStatus == 11)
+//   {
+//     millis = 2000000;
+//     modeStatus++;
+//   }
+//   if (mode == 11 && modeStatus == 10)
+//   {
+//     millis = 2008500;
+//     modeStatus++;
+//   }
+//   if (mode == 12 && modeStatus == 11)
+//   {
+//     millis = 2022500;
+//     modeStatus++;
+//   }
+//   if (mode == 13 && modeStatus == 12)
+//   {
+//     millis = 2034700;
+//     modeStatus++;
+//   }
+//   if (mode == 14 && modeStatus == 13)
+//   {
+//     millis = 2038000;
+//     modeStatus++;
+//   }
+//   if (mode == 15 && modeStatus == 14)
+//   {
+//     millis = 2044500;
+//     modeStatus++;
+//   }
+// }
+//
+// void mode0()
+//{
+//   servo0.moveCont(500, 2048, servoPos0);
+//   servo1.moveStop1(500, 2048);
+//   servo2.moveCont(500, 2048, servoPos2);
+//   servo3.moveStop3(500, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, hue, 255, 100);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode1()
+//{
+//   servo0.moveCont(0, 2048, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 2048, servoPos2);
+//   servo3.moveStop3(0, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+// }
+//
+// void mode2()
+//{
+//   servo0.moveCont(0, 2048, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 2048, servoPos2);
+//   servo3.moveStop3(0, 1800);
+// }
+//
+// void mode3()
+//{
+//   countLocal = millis - 22500;
+//   if (ID == 1)
+//   {
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       if (countLocal < 10000)
+//       {
+//         servo0.moveCont(0, 2048, servoPos0);
+//         servo1.moveStop1(0, 2048);
+//         servo2.moveCont(0, 2048, servoPos2);
+//         servo3.moveStop3(0, 1800);
+//         NeopixelTape.set_hsv(led, hue, 255, 255);
+//         NeopixelTape.set_hsv(led + 16, hue, 255, calc.similarityNormal(led, 180, countLocal / 30));
+//         NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+//       }
+//       if (countLocal > 10000 && countLocal < 12550)
+//       {
+//         servo0.moveCont(0, 2048, servoPos0);
+//         servo1.moveStop1(0, 2048);
+//         servo2.moveCont(0, 2048, servoPos2);
+//         servo3.moveStop3(0, 1800);
+//         NeopixelTape.set_hsv(led, hue, 255, 255);
+//         NeopixelTape.set_hsv(led + 16, hue, 255, 255);
+//         NeopixelTape.set_hsv(led + 32, hue, 255, (countLocal - 10000) / 10);
+//       }
+//       if (countLocal > 12550)
+//       {
+//         servo0.moveCont(500, 2048, servoPos0);
+//         servo1.moveStop1(2000, 1024);
+//         servo2.moveCont(500, 2048, servoPos2);
+//         servo3.moveStop3(2000, 2800);
+//         NeopixelTape.set_hsv(led, hue, 255, 0);
+//         NeopixelTape.set_hsv(led + 16, hue, 255, 0);
+//         NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+//       }
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+//   else
+//   {
+//     for (uint8_t led = 0; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, 0, 0, 0);
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//     servo0.moveCont(500, 2048, servoPos0);
+//     servo1.moveStop1(500, 2048);
+//     servo2.moveCont(500, 2048, servoPos2);
+//     servo3.moveStop3(500, 1800);
+//   }
+// }
+//
+// void mode4()
+//{
+//   countLocal = millis - 37000;
+//   if (ID == 1)
+//   {
+//     for (uint8_t led = 0; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, 0, 0, 0);
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//     servo0.moveCont(500, 2048, servoPos0);
+//     servo1.moveStop1(500, 1000);
+//     servo2.moveCont(500, 2048, servoPos2);
+//     servo3.moveStop3(500, 3000);
+//   }
+//   if (ID == 2 && countLocal < 7500)
+//   {
+//     servo0.moveCont(1000, 6144, servoPos0);
+//     servo1.moveStop1(500, 2048);
+//     servo2.moveCont(1000, 6144, servoPos2);
+//     servo3.moveStop3(500, 1800);
+//     for (uint8_t led = 0; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, hue, 255, 100);
+//       NeopixelTape.show();
+//     }
+//   }
+//   if (ID == 2 && countLocal > 7500)
+//   {
+//     servo0.moveCont(1000, 6144, servoPos0);
+//     servo1.moveStop1(2000, 1000);
+//     servo2.moveCont(1000, 6144, servoPos2);
+//     servo3.moveStop3(2000, 3000);
+//     for (uint8_t led = 0; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, hue, 255, 0);
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+//   if (ID == 3 && countLocal < 7500)
+//   {
+//     servo0.moveCont(500, 2048, servoPos0);
+//     servo1.moveStop1(500, 2048);
+//     servo2.moveCont(500, 2048, servoPos2);
+//     servo3.moveStop3(500, 1800);
+//   }
+//   if (ID == 3 && countLocal > 7500 && countLocal < 11800)
+//   {
+//     servo0.moveCont(0, 2048, servoPos0);
+//     servo1.moveStop1(0, 2048);
+//     servo2.moveCont(0, 2048, servoPos2);
+//     servo3.moveStop3(0, 1800);
+//     moveRotation = calc.calcRotation((countLocal - 7500) / 11, gyro);
+//     sendData(0, 0, moveRotation);
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, calc.similarityRise(led, (ledPos0 + 180) % 360, 90, hue, 100), 255, calc.similarityNormal(led, (ledPos0 + 180) % 360, 90));
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+//   if (ID == 3 && countLocal > 11800)
+//   {
+//     sendData(0, 0, 0);
+//     servo0.moveCont(2000, 3072, servoPos0);
+//     servo1.moveStop1(2000, 1024);
+//     servo2.moveCont(1000, 2048, servoPos2);
+//     servo3.moveStop3(2000, 2800);
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, 0, 0, 0);
+//     }
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+// }
+//
+// void mode5()
+//{
+//   servo0.moveCont(2000, 2048, servoPos0);
+//   servo1.moveStop1(2000, 2048);
+//   servo2.moveCont(2000, 2048, servoPos2);
+//   servo3.moveStop3(2000, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode6()
+//{
+//   countLocal = millis - 60000;
+//   servo0.moveCont(0, 2048, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 2048, servoPos2);
+//   servo3.moveStop3(0, 1800);
+//   if ((countLocal / 3) % 360 > 300)
+//   {
+//     for (uint8_t led = 32; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, hue, 255, 255);
+//     }
+//   }
+//   else if ((countLocal / 3) % 360 > 30)
+//   {
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, hue, 255, 255);
+//       NeopixelTape.set_hsv(led + 16, hue, 255, calc.similarityNormal(led, 180, (countLocal / 3) % 360));
+//       NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+//     }
+//   }
+//   else
+//   {
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, hue, 255, 0);
+//       NeopixelTape.set_hsv(led + 16, hue, 255, 0);
+//       NeopixelTape.set_hsv(led + 32, hue, 255, 0);
+//     }
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode7()
+//{
+//   static uint16_t randomNum = 0;
+//   randomNum += 47;
+//   servo0.moveCont(0, 2000 + randomNum % 128, servoPos0);
+//   servo1.moveStop1(0, 2000 + randomNum % 128);
+//   servo2.moveCont(0, 2000 + randomNum % 128, servoPos2);
+//   servo3.moveStop3(0, 2000 + randomNum % 128);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, randomNum, randomNum, randomNum);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode8()
+//{
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode9()
+//{
+//   servo0.moveCont(0, 2048, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 2048, servoPos2);
+//   servo3.moveStop3(0, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode10()
+//{
+//   servo0.moveCont(0, 2048, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 2048, servoPos2);
+//   servo3.moveStop3(0, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode11()
+//{
+//   countLocal = millis - 208500;
+//   static uint8_t status = 0;
+//   static uint16_t degree = 0;
+//
+//   servo0.moveCont(1000, countLocal % 2000 * 2, servoPos0);
+//   servo1.moveStop1(1000, countLocal % 2000 + 1100);
+//   servo2.moveCont(1000, countLocal % 2000 * 2, servoPos2);
+//   servo3.moveStop3(1000, countLocal % 2000 / 2 + 1900);
+//
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
+//     NeopixelTape.show();
+//     HAL_Delay(1);
+//   }
+// }
+//
+// void mode12()
+//{
+//   countLocal = millis - 222500;
+//   static int16_t i = 8;
+//   if (countLocal % 6000 < 3000)
+//   {
+//     servo0.moveCont(1500, 8191, servoPos0);
+//     servo2.moveCont(1500, 8191, servoPos2);
+//
+//     if (i != 0)
+//     {
+//       i += 8;
+//       if (i >= 180)
+//       {
+//         i -= 360;
+//       }
+//     }
+//
+//     moveRotation = calc.calcRotation(i, gyro);
+//
+//     if (moveRotation > 0)
+//     {
+//       moveRotation += 10;
+//     }
+//     if (moveRotation < 0)
+//     {
+//       moveRotation -= 10;
+//     }
+//
+//     sendData(0, 0, moveRotation);
+//
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos0, 90, 128, 100), 255, calc.similarityNormal(led, ledPos0, 90));
+//       NeopixelTape.show();
+//     }
+//     for (uint8_t led = 32; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, ledPos2, 90));
+//       NeopixelTape.show();
+//     }
+//   }
+//   else
+//   {
+//     servo0.moveCont(1500, 0, servoPos0);
+//     servo2.moveCont(1500, 0, servoPos2);
+//
+//     if (i != 8)
+//     {
+//       i -= 8;
+//       if (i < -180)
+//       {
+//         i += 360;
+//       }
+//     }
+//
+//     moveRotation = calc.calcRotation(i, gyro);
+//
+//     if (moveRotation > 0)
+//     {
+//       moveRotation += 10;
+//     }
+//     if (moveRotation < 0)
+//     {
+//       moveRotation -= 10;
+//     }
+//
+//     sendData(0, 0, moveRotation);
+//
+//     for (uint8_t led = 0; led < 16; led++)
+//     {
+//       NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+//       NeopixelTape.show();
+//     }
+//     for (uint8_t led = 32; led < 48; led++)
+//     {
+//       NeopixelTape.set_hsv(led, calc.similarityRise(led, ledPos2, 90, 128, 100), 255, calc.similarityNormal(led, 360 - ledPos2, 90));
+//       NeopixelTape.show();
+//     }
+//   }
+// }
+//
+// void mode13()
+//{
+//   countLocal = millis - 234700;
+//   sendData(0, 0, 60);
+//   servo0.moveCont(1000, countLocal * 2, servoPos0);
+//   servo2.moveCont(1000, countLocal * 2, servoPos2);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, calc.similarityPeak(led, (countLocal / 3) % 360, 90, countLocal % 256, 50), 255, calc.similarityNormal(led, (countLocal / 3) % 360, 90));
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode14()
+//{
+//   static uint16_t i = 60;
+//   if (i > 1)
+//   {
+//     i--;
+//   }
+//   sendData(0, 0, 0);
+//   servo0.moveCont(0, 6000, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 6000, servoPos2);
+//   servo3.moveStop3(0, 1900);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, hue, 255, i);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void mode15()
+//{
+//   countLocal = millis - 244500;
+//   servo0.moveCont(0, 6000, servoPos0);
+//   servo1.moveStop1(0, 2048);
+//   servo2.moveCont(0, 6000, servoPos2);
+//   servo3.moveStop3(0, 1900);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, hue, 255, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
+//
+// void modeError()
+//{
+//   servo0.moveCont(500, 2048, servoPos0);
+//   servo1.moveStop1(500, 2048);
+//   servo2.moveCont(500, 2048, servoPos2);
+//   servo3.moveStop3(500, 1800);
+//   for (uint8_t led = 0; led < 48; led++)
+//   {
+//     NeopixelTape.set_hsv(led, 0, 0, 0);
+//   }
+//   NeopixelTape.show();
+//   HAL_Delay(1);
+// }
 
 /* USER CODE END 4 */
 
