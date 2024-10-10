@@ -80,11 +80,10 @@ boolean flg = false;
 int countNum = 0;
 
 void draw(){
-  
   if(flg == true){
     countNum++;
     //gesture == 0;
-   if(countNum == 120){
+   if(countNum == 180){
      flg = false;
      countNum = 0;
      gesture = 250;
@@ -97,6 +96,9 @@ void draw(){
        
        flg = true;
     }
+  }
+  if(gesture < 0){
+    gesture = 250;
   }
   
   println(gesture);
