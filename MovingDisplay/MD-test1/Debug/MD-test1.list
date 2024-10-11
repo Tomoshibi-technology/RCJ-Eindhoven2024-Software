@@ -41,11 +41,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  18 .debug_str    0008aa45  00000000  00000000  0004297d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000086  00000000  00000000  000cd3c2  2**0
+ 19 .comment      00000043  00000000  00000000  000cd3c2  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000331c  00000000  00000000  000cd448  2**2
+ 20 .debug_frame  0000331c  00000000  00000000  000cd408  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000077  00000000  00000000  000d0764  2**0
+ 21 .debug_line_str 00000077  00000000  00000000  000d0724  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -662,10 +662,10 @@ int main(void)
  80004ee:	681b      	ldr	r3, [r3, #0]
  80004f0:	607b      	str	r3, [r7, #4]
 //if value did not update, alert by LED and motor sound.
-//対�? against DMA did not start correctly
-//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後�?�がたつきと通信線繋いでな�?とき�?�動�?)
+//対?��? against DMA did not start correctly
+//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後�??��がたつきと通信線繋いでな?��?とき�??��動�?)
 
-//speed算�?�
+//speed算�??��
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 10);
  80004f2:	4a96      	ldr	r2, [pc, #600]	@ (800074c <main+0x334>)
  80004f4:	498d      	ldr	r1, [pc, #564]	@ (800072c <main+0x314>)
@@ -823,7 +823,7 @@ int main(void)
  800060c:	60bb      	str	r3, [r7, #8]
 	  }else{}
 
-//出力リミッ�?
+//出力リミッ?��?
 	  if(duty > 3120){duty = 3120;}
  800060e:	4b4b      	ldr	r3, [pc, #300]	@ (800073c <main+0x324>)
  8000610:	2200      	movs	r2, #0
@@ -1914,14 +1914,14 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000c9c:	61bb      	str	r3, [r7, #24]
 	int rd_pt;
 
-	if(wrt_pt != *p_rdpt){//wrtに追�?付かれてな�?
+	if(wrt_pt != *p_rdpt){//wrtに追?��?付かれてな?��?
  8000c9e:	6c7b      	ldr	r3, [r7, #68]	@ 0x44
  8000ca0:	781b      	ldrb	r3, [r3, #0]
  8000ca2:	001a      	movs	r2, r3
  8000ca4:	69bb      	ldr	r3, [r7, #24]
  8000ca6:	4293      	cmp	r3, r2
  8000ca8:	d032      	beq.n	8000d10 <readBuf+0x94>
-		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな�?=追�?越されてな�?
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな?��?=追?��?越されてな?��?
  8000caa:	6c7b      	ldr	r3, [r7, #68]	@ 0x44
  8000cac:	781b      	ldrb	r3, [r3, #0]
  8000cae:	001a      	movs	r2, r3
@@ -1930,7 +1930,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000cb4:	781b      	ldrb	r3, [r3, #0]
  8000cb6:	2bff      	cmp	r3, #255	@ 0xff
  8000cb8:	d116      	bne.n	8000ce8 <readBuf+0x6c>
-			if(wrt_pt != *p_wrtpt){//wrt_ptが�?�んだ=受信した
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�??��んだ=受信した
  8000cba:	6c3b      	ldr	r3, [r7, #64]	@ 0x40
  8000cbc:	781b      	ldrb	r3, [r3, #0]
  8000cbe:	001a      	movs	r2, r3
@@ -1947,8 +1947,8 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000cce:	781b      	ldrb	r3, [r3, #0]
  8000cd0:	62fb      	str	r3, [r7, #44]	@ 0x2c
  8000cd2:	e04b      	b.n	8000d6c <readBuf+0xf0>
-			}else{//wrt_ptが�?�んでな�?=受信してな�?
-//受信してな�?
+			}else{//wrt_ptが�??��んでな?��?=受信してな?��?
+//受信してな?��?
 				(*stop_counter)++;
  8000cd4:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
  8000cd6:	881b      	ldrh	r3, [r3, #0]
@@ -1962,8 +1962,8 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000ce4:	62fb      	str	r3, [r7, #44]	@ 0x2c
  8000ce6:	e041      	b.n	8000d6c <readBuf+0xf0>
 			}
-		}else{//p_rdptが書き換えられた=追�?越された
-//追�?越された
+		}else{//p_rdptが書き換えられた=追?��?越された
+//追?��?越された
 			(*error_counter)++;
  8000ce8:	6cfb      	ldr	r3, [r7, #76]	@ 0x4c
  8000cea:	881b      	ldrh	r3, [r3, #0]
@@ -1988,7 +1988,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000d0c:	62fb      	str	r3, [r7, #44]	@ 0x2c
  8000d0e:	e02d      	b.n	8000d6c <readBuf+0xf0>
 		}
-	}else{//wrtに追�?付かれた,追�?付い�?
+	}else{//wrtに追?��?付かれた,追?��?付い?��?
 		int front_pt = wrt_pt + 1;
  8000d10:	69bb      	ldr	r3, [r7, #24]
  8000d12:	3301      	adds	r3, #1
@@ -2010,7 +2010,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000d2c:	781b      	ldrb	r3, [r3, #0]
  8000d2e:	2bff      	cmp	r3, #255	@ 0xff
  8000d30:	d109      	bne.n	8000d46 <readBuf+0xca>
-//追�?付い�?
+//追?��?付い?��?
 			(*stop_counter)++;
  8000d32:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
  8000d34:	881b      	ldrh	r3, [r3, #0]
@@ -2024,7 +2024,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000d42:	62fb      	str	r3, [r7, #44]	@ 0x2c
  8000d44:	e012      	b.n	8000d6c <readBuf+0xf0>
 		}else{
-//追�?付かれた
+//追?��?付かれた
 			(*error_counter)++;
  8000d46:	6cfb      	ldr	r3, [r7, #76]	@ 0x4c
  8000d48:	881b      	ldrh	r3, [r3, #0]
@@ -2123,7 +2123,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000dde:	33fa      	adds	r3, #250	@ 0xfa
  8000de0:	429a      	cmp	r2, r3
  8000de2:	d14b      	bne.n	8000e7c <readBuf+0x200>
-			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな�?,25以上も�?�?
+			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな?��?,25以上も?��??��?
  8000de4:	6afa      	ldr	r2, [r7, #44]	@ 0x2c
  8000de6:	6bbb      	ldr	r3, [r7, #56]	@ 0x38
  8000de8:	18d3      	adds	r3, r2, r3

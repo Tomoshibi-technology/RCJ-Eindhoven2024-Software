@@ -62,7 +62,7 @@ uint8_t rxDataA[2]={0,50};
 uint8_t rxBufB[128]={[0 ... 127] = 255};
 uint8_t rxDataB[2]={0,50};
 
-uint16_t goal_speed= 5000;//目�?
+uint16_t goal_speed= 5000;//目?��?
 uint16_t now_speed = 5000;//現在速度
 uint16_t dif_speed;//目標と現在の差
 
@@ -196,10 +196,10 @@ int main(void)
 	  d_pcounter = u10_counter;
 
 //if value did not update, alert by LED and motor sound.
-//対�? against DMA did not start correctly
-//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後�?�がたつきと通信線繋いでな�?とき�?�動�?)
+//対?��? against DMA did not start correctly
+//bus=0つまりwhen MD does not communicate with Mother,STOP(起動直後�??��がたつきと通信線繋いでな?��?とき�??��動�?)
 
-//speed算�?�
+//speed算�??��
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 10);
 	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, &p_wrtptB, &p_rdptB, &stop_counterB, &error_counterB, 40);
 
@@ -218,7 +218,7 @@ int main(void)
 		  duty_pcounter = u10_counter;
 	  }else{}
 
-//出力リミッ�?
+//出力リミッ?��?
 	  if(duty > 3120){duty = 3120;}
 	  else if(duty < 80){duty = 80;}
 	  else{duty = duty;}
@@ -571,33 +571,33 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 	wrt_pt= buf_size - wrt_pt;
 	int rd_pt;
 
-	if(wrt_pt != *p_rdpt){//wrtに追�?付かれてな�?
-		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな�?=追�?越されてな�?
-			if(wrt_pt != *p_wrtpt){//wrt_ptが�?�んだ=受信した
+	if(wrt_pt != *p_rdpt){//wrtに追?��?付かれてな?��?
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな?��?=追?��?越されてな?��?
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�??��んだ=受信した
 //正常
 				*stop_counter = 0;
 				rd_pt = *p_rdpt;
-			}else{//wrt_ptが�?�んでな�?=受信してな�?
-//受信してな�?
+			}else{//wrt_ptが�??��んでな?��?=受信してな?��?
+//受信してな?��?
 				(*stop_counter)++;
 				rd_pt = *p_rdpt;
 			}
-		}else{//p_rdptが書き換えられた=追�?越された
-//追�?越された
+		}else{//p_rdptが書き換えられた=追?��?越された
+//追?��?越された
 			(*error_counter)++;
 			rd_pt = wrt_pt - go_back;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
-	}else{//wrtに追�?付かれた,追�?付い�?
+	}else{//wrtに追?��?付かれた,追?��?付い?��?
 		int front_pt = wrt_pt + 1;
 			if(front_pt>buf_size-1){front_pt -= buf_size;}
 
 		if(buf[front_pt] == 255){
-//追�?付い�?
+//追?��?付い?��?
 			(*stop_counter)++;
 			rd_pt = *p_rdpt;
 		}else{
-//追�?付かれた
+//追?��?付かれた
 			(*error_counter)++;
 			rd_pt = wrt_pt - go_back;
 				if(rd_pt < 0){rd_pt += buf_size;}
@@ -617,7 +617,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 			if(rd_pt>buf_size-1){rd_pt -= buf_size;}
 
 		if(buf[rd_pt] == 250+id){
-			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな�?,25以上も�?�?
+			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな?��?,25以上も?��??��?
 
 				if(goal_rdpt>buf_size-1){goal_rdpt -= buf_size;}
 			int temp_rdpt = rd_pt;

@@ -61,7 +61,7 @@ main-build: MD-test1.elf secondary-outputs
 
 # Tool invocations
 MD-test1.elf MD-test1.map: $(OBJS) $(USER_OBJS) C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\MD-test1\STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MD-test1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\MD-test1\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MD-test1.map" -Wl,--gc-sections -static -specs=rdimon.specs --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "MD-test1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\MD-test1\STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MD-test1.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

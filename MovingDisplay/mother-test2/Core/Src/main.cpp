@@ -137,7 +137,7 @@ int main(void)
   BNO055 bno055(&hi2c1);
 
   if (!bno055.begin()) {
-	  // センサ初期化失敗時の処理
+	  // センサ初期化失敗時の処�?
 	  while (1){HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);};
   }
 
@@ -166,7 +166,7 @@ int main(void)
 	dtime = m_counter - d_pcounter;
 	d_pcounter = m_counter;
 
-//回転を取?��?
+//回転を取??��?��?
 	bno055.getEulerAngles(heading, roll, pitch);
 	rotate = (int)heading;
 
@@ -187,14 +187,14 @@ int main(void)
 	HAL_Delay(10);
 	position[1] = rxDataY[1] + rxDataY[2]*200 - 20000;
 
-//移動距離をと?��?
+//移動距離をと??��?��?
 	for(int i=0; i<2; i++){cur_position_rec[i] = goal_position[i] - position[i];}
 
 //移動距離を極座標に
 	cur_position_pol[0] = pow(pow(cur_position_rec[0], 2) + pow(cur_position_rec[1], 2), 0.5);
 	cur_position_pol[1] = atan2(cur_position_rec[0], cur_position_rec[1]) / 3.1415 * 180.0;
 
-//移動位置->移動スピ�??��?��?
+//移動位置->移動スピ�???��?��??��?��?
 	if(cur_position_pol[0] > zero_thr){speed = trgt_speed;}
 	else if(cur_position_pol[0] < -zero_thr){speed = -trgt_speed;}
 	else{speed = 0;}
@@ -202,16 +202,16 @@ int main(void)
 	degree = cur_position_pol[1];
 
 
-//移動スピ�??��?��?->?��?モーターのスピ�??��?��?
+//移動スピ�???��?��??��?��?->??��?��?モーターのスピ�???��?��??��?��?
 	speed_set(rotate, speed, degree, MTRS, 0.7);
 
-//?��?モーターのスピ�??��?��?->送る行�??
+//??��?��?モーターのスピ�???��?��??��?��?->送る行�??
 	set_array(MTRS, send_array);
 
 ////モーターに送る
 	if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) == 1){
 	  HAL_UART_Transmit(&huart6, send_array, 12, 1);
-	}else{//スタートスイ?��?チがオフ�??��?��?
+	}else{//スタートスイ??��?��?チがオフ�???��?��??��?��?
 		for(int i=0; i<4; i++){
 		  send_array[3*i] = 250 + i;
 		  send_array[3*i + 1] = 210;

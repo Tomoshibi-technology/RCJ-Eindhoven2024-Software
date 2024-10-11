@@ -474,33 +474,33 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 	wrt_pt= buf_size - wrt_pt;
 	int rd_pt;
 
-	if(wrt_pt != *p_rdpt){//wrtに追い付かれてない
-		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてない=追い越されてない
-			if(wrt_pt != *p_wrtpt){//wrt_ptが進んだ=受信した
+	if(wrt_pt != *p_rdpt){//wrtに追�?付かれてな�?
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな�?=追�?越されてな�?
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�?�んだ=受信した
 //正常
 				*stop_counter = 0;
 				rd_pt = *p_rdpt;
-			}else{//wrt_ptが進んでない=受信してない
-//受信してない
+			}else{//wrt_ptが�?�んでな�?=受信してな�?
+//受信してな�?
 				(*stop_counter)++;
 				rd_pt = *p_rdpt;
 			}
-		}else{//p_rdptが書き換えられた=追い越された
-//追い越された
+		}else{//p_rdptが書き換えられた=追�?越された
+//追�?越された
 			(*error_counter)++;
 			rd_pt = wrt_pt - 20;
 				if(rd_pt < 0){rd_pt += buf_size;}
 		}
-	}else{//wrtに追い付かれた,追い付いた
+	}else{//wrtに追�?付かれた,追�?付い�?
 		int front_pt = wrt_pt + 1;
 			if(front_pt>buf_size-1){front_pt -= buf_size;}
 
 		if(buf[front_pt] == 255){
-//追い付いた
+//追�?付い�?
 			(*stop_counter)++;
 			rd_pt = *p_rdpt;
 		}else{
-//追い付かれた
+//追�?付かれた
 			(*error_counter)++;
 			rd_pt = wrt_pt - 20;
 				if(rd_pt < 0){rd_pt += buf_size;}
@@ -523,7 +523,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
 			if(rd_pt>buf_size-1){rd_pt -= buf_size;}
 
 //		if(buf[rd_pt] == 250+id){
-//			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれない,25以上もだめ
+//			int goal_rdpt = rd_pt + data_size;//data_sizeに0はとれな�?,25以上も�?�?
 //				if(goal_rdpt>buf_size-1){goal_rdpt -= buf_size;}
 //			int temp_rdpt = rd_pt;
 //			buf[rd_pt] = 255;

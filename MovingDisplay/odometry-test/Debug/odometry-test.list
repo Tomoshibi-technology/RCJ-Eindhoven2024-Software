@@ -1711,14 +1711,14 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000bc0:	613b      	str	r3, [r7, #16]
 	int rd_pt;
 
-	if(wrt_pt != *p_rdpt){//wrtに追い付かれてない
+	if(wrt_pt != *p_rdpt){//wrtに追�?付かれてな�?
  8000bc2:	6b3b      	ldr	r3, [r7, #48]	@ 0x30
  8000bc4:	781b      	ldrb	r3, [r3, #0]
  8000bc6:	001a      	movs	r2, r3
  8000bc8:	693b      	ldr	r3, [r7, #16]
  8000bca:	4293      	cmp	r3, r2
  8000bcc:	d02f      	beq.n	8000c2e <readBuf+0x8e>
-		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてない=追い越されてない
+		if(buf[*p_rdpt] == 255){//p_rdptが書き換えられてな�?=追�?越されてな�?
  8000bce:	6b3b      	ldr	r3, [r7, #48]	@ 0x30
  8000bd0:	781b      	ldrb	r3, [r3, #0]
  8000bd2:	001a      	movs	r2, r3
@@ -1727,7 +1727,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000bd8:	781b      	ldrb	r3, [r3, #0]
  8000bda:	2bff      	cmp	r3, #255	@ 0xff
  8000bdc:	d116      	bne.n	8000c0c <readBuf+0x6c>
-			if(wrt_pt != *p_wrtpt){//wrt_ptが進んだ=受信した
+			if(wrt_pt != *p_wrtpt){//wrt_ptが�?�んだ=受信した
  8000bde:	6afb      	ldr	r3, [r7, #44]	@ 0x2c
  8000be0:	781b      	ldrb	r3, [r3, #0]
  8000be2:	001a      	movs	r2, r3
@@ -1744,8 +1744,8 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000bf2:	781b      	ldrb	r3, [r3, #0]
  8000bf4:	61fb      	str	r3, [r7, #28]
  8000bf6:	e045      	b.n	8000c84 <readBuf+0xe4>
-			}else{//wrt_ptが進んでない=受信してない
-//受信してない
+			}else{//wrt_ptが�?�んでな�?=受信してな�?
+//受信してな�?
 				(*stop_counter)++;
  8000bf8:	6b7b      	ldr	r3, [r7, #52]	@ 0x34
  8000bfa:	881b      	ldrh	r3, [r3, #0]
@@ -1759,8 +1759,8 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000c08:	61fb      	str	r3, [r7, #28]
  8000c0a:	e03b      	b.n	8000c84 <readBuf+0xe4>
 			}
-		}else{//p_rdptが書き換えられた=追い越された
-//追い越された
+		}else{//p_rdptが書き換えられた=追�?越された
+//追�?越された
 			(*error_counter)++;
  8000c0c:	6bbb      	ldr	r3, [r7, #56]	@ 0x38
  8000c0e:	881b      	ldrh	r3, [r3, #0]
@@ -1782,7 +1782,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000c2a:	61fb      	str	r3, [r7, #28]
  8000c2c:	e02a      	b.n	8000c84 <readBuf+0xe4>
 		}
-	}else{//wrtに追い付かれた,追い付いた
+	}else{//wrtに追�?付かれた,追�?付い�?
 		int front_pt = wrt_pt + 1;
  8000c2e:	693b      	ldr	r3, [r7, #16]
  8000c30:	3301      	adds	r3, #1
@@ -1804,7 +1804,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000c4a:	781b      	ldrb	r3, [r3, #0]
  8000c4c:	2bff      	cmp	r3, #255	@ 0xff
  8000c4e:	d109      	bne.n	8000c64 <readBuf+0xc4>
-//追い付いた
+//追�?付い�?
 			(*stop_counter)++;
  8000c50:	6b7b      	ldr	r3, [r7, #52]	@ 0x34
  8000c52:	881b      	ldrh	r3, [r3, #0]
@@ -1818,7 +1818,7 @@ void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data
  8000c60:	61fb      	str	r3, [r7, #28]
  8000c62:	e00f      	b.n	8000c84 <readBuf+0xe4>
 		}else{
-//追い付かれた
+//追�?付かれた
 			(*error_counter)++;
  8000c64:	6bbb      	ldr	r3, [r7, #56]	@ 0x38
  8000c66:	881b      	ldrh	r3, [r3, #0]
