@@ -2,12 +2,12 @@
 ../Core/Src/main.cpp:102:6:void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef*)	16	static
 ../Core/Src/main.cpp:106:9:uint8_t readID()	16	static
 ../Core/Src/main.cpp:133:5:int main()	112	static
-../Core/Src/main.cpp:275:6:void SystemClock_Config()	88	static
-../Core/Src/main.cpp:319:13:void MX_TIM3_Init()	64	static
-../Core/Src/main.cpp:378:13:void MX_USART2_UART_Init()	8	static
-../Core/Src/main.cpp:412:13:void MX_DMA_Init()	16	static
-../Core/Src/main.cpp:433:13:void MX_GPIO_Init()	48	static
-../Core/Src/main.cpp:472:6:void readBuf(UART_HandleTypeDef*, uint8_t*, int, uint8_t*, int, uint8_t, uint8_t*, uint8_t*, uint16_t*, uint16_t*, uint8_t)	56	static
-../Core/Src/main.cpp:557:6:void Error_Handler()	8	static,ignoring_inline_asm
-../Core/Src/main.cpp:566:1:void __static_initialization_and_destruction_0(int, int)	16	static
-../Core/Src/main.cpp:566:1:cpp)	8	static
+../Core/Src/main.cpp:276:6:void SystemClock_Config()	88	static
+../Core/Src/main.cpp:320:13:void MX_TIM3_Init()	64	static
+../Core/Src/main.cpp:379:13:void MX_USART2_UART_Init()	8	static
+../Core/Src/main.cpp:413:13:void MX_DMA_Init()	16	static
+../Core/Src/main.cpp:434:13:void MX_GPIO_Init()	48	static
+../Core/Src/main.cpp:473:6:void readBuf(UART_HandleTypeDef*, uint8_t*, int, uint8_t*, int, uint8_t, uint8_t*, uint8_t*, uint16_t*, uint16_t*, uint8_t)	56	static
+../Core/Src/main.cpp:558:6:void Error_Handler()	8	static,ignoring_inline_asm
+../Core/Src/main.cpp:567:1:void __static_initialization_and_destruction_0(int, int)	16	static
+../Core/Src/main.cpp:567:1:cpp)	8	static

@@ -167,10 +167,11 @@ int main(void)
 
   // Start Motion
   Neopixel.clear();
-  for(uint16_t nnn=0; nnn<256; nnn++){
-	  Neopixel.set_hsv(nnn, 100, 100, 2);
+  for(uint16_t n=0; n<256; n++){
+	  Neopixel.set_hsv(n, 100, 100, 5);
   }
   Neopixel.show();
+  Neopixel.show(); //これ2回連続にしないと、最後の一つが光らない。なんでなん。
   HAL_Delay(1000);
 
 
