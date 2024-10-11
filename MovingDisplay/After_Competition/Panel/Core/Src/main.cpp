@@ -79,7 +79,6 @@ uint8_t square_v = 50;
 
 
 
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -174,6 +173,33 @@ int main(void)
   Neopixel.show(); //これ2回連続にしないと、最後の一つが光らない。なんでなん。
   HAL_Delay(1000);
 
+  for(int naname=0; naname<121; naname++){
+	  Neopixel.clear();
+	  for(int px=0; px<16; px++){
+		  for(int pz=0; pz<16; pz++){
+			  int hue = 10;
+			  int sat = 100;
+			  int val = 0;
+
+			  if(naname < 31){
+				  if(pz+px <= naname){hue=50;val=20;}
+		   	  }else if(naname < 61){
+				  if((15-pz)+px <= naname-30){hue=100;val=20;}
+		   	  }else if(naname < 91){
+				  if(pz+px <= naname-60){hue=150;val=20;}
+		   	  }else if(naname < 121){
+				  if((15-pz)+px <= naname-90){hue=200;val=20;}
+		   	  }
+			  uint16_t pixel_num = 0;
+			  if(pz%2 == 0){pixel_num = pz*16 + px;
+			  }else{pixel_num = pz*16 + 15 - px;}
+			  Neopixel.set_hsv(pixel_num, hue, sat, val);
+		  }
+	  }
+	  Neopixel.show();
+	  HAL_Delay(10);
+  }
+  HAL_Delay(3000);
 
   /* USER CODE END 2 */
 
