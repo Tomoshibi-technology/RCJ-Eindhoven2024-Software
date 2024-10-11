@@ -77,6 +77,9 @@ uint8_t square_h = 0;
 uint8_t square_s = 255;
 uint8_t square_v = 50;
 
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -162,12 +165,25 @@ int main(void)
   HAL_UART_Receive_DMA(&huart2, rxBuf, 64);
   HAL_Delay(1);
 
+  // Start Motion
+  Neopixel.clear();
+  for(uint16_t nnn=0; nnn<256; nnn++){
+	  Neopixel.set_hsv(nnn, 100, 100, 2);
+  }
+  Neopixel.show();
+  HAL_Delay(1000);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
   while (1)
   {
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
 	readBuf(&huart2, rxBuf, 64, Data, 12, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
 	myid = readID();
 
@@ -189,7 +205,6 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  Neopixel.clear();
-
 
 	  //----------------------------------------------
 	  uint16_t PANEL_START_X = 0;
@@ -249,12 +264,6 @@ int main(void)
 		  }
 	  }
 	  Neopixel.show();
-
-
-
-
-
-
   }
   /* USER CODE END 3 */
 }

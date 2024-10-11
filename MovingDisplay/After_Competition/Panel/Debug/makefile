@@ -84,8 +84,8 @@ all: main-build
 main-build: Panel.elf secondary-outputs
 
 # Tool invocations
-Panel.elf Panel.map: $(OBJS) $(USER_OBJS) /Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/希望の星/Panel/STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "Panel.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/希望の星/Panel/STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Panel.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+Panel.elf Panel.map: $(OBJS) $(USER_OBJS) /Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/After_Competition/Panel/STM32G030K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "Panel.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/After_Competition/Panel/STM32G030K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Panel.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
