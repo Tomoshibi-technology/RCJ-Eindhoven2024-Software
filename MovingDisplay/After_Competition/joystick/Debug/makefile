@@ -84,8 +84,8 @@ all: main-build
 main-build: joystick.elf secondary-outputs
 
 # Tool invocations
-joystick.elf joystick.map: $(OBJS) $(USER_OBJS) C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\After_Competition\joystick\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "joystick.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\After_Competition\joystick\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="joystick.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+joystick.elf joystick.map: $(OBJS) $(USER_OBJS) /Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/After_Competition/joystick/STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "joystick.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/jumpei/Documents/GitHub/RCJ-Eindhoven2024-Software/MovingDisplay/After_Competition/joystick/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="joystick.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
