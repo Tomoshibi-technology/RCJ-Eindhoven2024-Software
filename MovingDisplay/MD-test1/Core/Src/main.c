@@ -203,7 +203,7 @@ int main(void)
 	  readBuf(&huart1, rxBufA, 64, rxDataA, 2, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 10);
 	  readBuf(&huart2, rxBufB, 128, rxDataB, 2, ID, &p_wrtptB, &p_rdptB, &stop_counterB, &error_counterB, 40);
 
-	  goal_speed = rxDataB[0] + rxDataB[1]*100;
+	  goal_speed = rxDataB[0] + rxDataB[1]*100;//試運転用にコメント化
 
 	  now_speed = rxDataA[0] + rxDataA[1]*100;
 
@@ -225,7 +225,7 @@ int main(void)
 
 //stop_flag
 	  if(stop_counterA > 1000){stop_flag = 0;}
-	  else if(stop_counterB > 1000){stop_flag = 0;}
+	  else if(stop_counterB > 1000){stop_flag = 0;}//試運転用にコメント化
 	  else if(HAL_GPIO_ReadPin(SLSW_GPIO_Port, SLSW_Pin) != 1){stop_flag = 0;}
 	  else if(goal_speed > 20200){stop_flag = 0;}//shutdown command detect
 	  else if(u10_counter < 100000){stop_flag = 0;}

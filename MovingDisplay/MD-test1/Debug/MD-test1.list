@@ -710,7 +710,7 @@ int main(void)
  8000542:	2280      	movs	r2, #128	@ 0x80
  8000544:	f000 fb9a 	bl	8000c7c <readBuf>
 
-	  goal_speed = rxDataB[0] + rxDataB[1]*100;
+	  goal_speed = rxDataB[0] + rxDataB[1]*100;//試運転用にコメント化
  8000548:	4b85      	ldr	r3, [pc, #532]	@ (8000760 <main+0x348>)
  800054a:	781b      	ldrb	r3, [r3, #0]
  800054c:	001a      	movs	r2, r3
@@ -866,7 +866,7 @@ int main(void)
  8000650:	2200      	movs	r2, #0
  8000652:	701a      	strb	r2, [r3, #0]
  8000654:	e02b      	b.n	80006ae <main+0x296>
-	  else if(stop_counterB > 1000){stop_flag = 0;}
+	  else if(stop_counterB > 1000){stop_flag = 0;}//試運転用にコメント化
  8000656:	4b44      	ldr	r3, [pc, #272]	@ (8000768 <main+0x350>)
  8000658:	881a      	ldrh	r2, [r3, #0]
  800065a:	23fa      	movs	r3, #250	@ 0xfa
