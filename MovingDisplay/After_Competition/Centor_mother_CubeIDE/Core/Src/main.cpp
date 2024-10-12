@@ -25,6 +25,10 @@
 #include <math.h>
 #include "joystick.h"
 
+#include "SSD1306.h"
+#include "fonts.h"
+#include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +48,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+
+I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
@@ -74,6 +80,7 @@ static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_UART5_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 void readBuf(UART_HandleTypeDef* uart, uint8_t* buf, int buf_size, uint8_t* data, int data_size, uint8_t id, uint8_t* p_wrtpt, uint8_t* p_rdpt, uint16_t* stop_counter, uint16_t* error_counter, uint8_t go_back);
 /* USER CODE END PFP */
@@ -116,6 +123,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_UART5_Init();
   MX_ADC1_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_DMA(&huart1,rxBuf,128);
   JOYSTICK joystick(&hadc1);
@@ -123,6 +131,19 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	ssd1306_Init(&hi2c1);
+	HAL_Delay(1000);
+	ssd1306_Fill(Black);
+	ssd1306_UpdateScreen(&hi2c1);
+
+	HAL_Delay(1000);
+	ssd1306_SetCursor(7,13);
+	ssd1306_WriteString("Tomoshibi",Font_11x18,White);
+	ssd1306_SetCursor(12,33);
+	ssd1306_WriteString("Technology",Font_11x18,Black);
+
+	ssd1306_UpdateScreen(&hi2c1);
+
   while (1)
   {
 	readBuf(&huart1, rxBuf, 128, Data, 4, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
@@ -140,7 +161,7 @@ int main(void)
 	theta = (atan2(stick[1], stick[0])/3.1415*180.0+180.0) * 255/360;
 	if(stick[0]==0 && stick[1]==0)theta=0;
 	if(theta == 250)theta=251;
-	radius = sqrt(stick[0]*stick[0] + stick[1]*stick[1]) * 250/2400;
+	radius = sqrt(stick[0]*stick[0] + stick[1]*stick[1]) * 250/2600;
 	if(radius>255 || radius==250 )radius = 255;
 
 
@@ -254,6 +275,40 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
 
 }
 

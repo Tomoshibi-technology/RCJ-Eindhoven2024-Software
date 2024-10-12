@@ -23,7 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include "ws2812.h"
 #include "led.h"
-#include "sdma_transmit.h"
+//#include "sdma_transmit.h"
+#include "image.h"
 
 /* USER CODE END Includes */
 
@@ -59,8 +60,8 @@ uint8_t p_rdptA=0;
 uint16_t stop_counterA=0;
 uint16_t error_counterA=0;
 
-uint8_t rxBuf[64];
-uint8_t Data[12];
+uint8_t rxBuf[128];
+uint8_t Data[30];
 
 int8_t myid = 0;
 
@@ -77,7 +78,9 @@ uint8_t square_h = 0;
 uint8_t square_s = 255;
 uint8_t square_v = 50;
 
-
+uint8_t image_id[6] = {0};
+uint8_t image_x[6] = {0};
+uint8_t image_z[6] = {0};
 
 /* USER CODE END PV */
 
@@ -114,9 +117,9 @@ uint8_t readID(){
 		ID+=4;
 	}
 	//養生5番はここを消す。ハード故障。
-//	if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
-//		ID+=8;
-//	}
+	if(HAL_GPIO_ReadPin(SW4_GPIO_Port, SW4_Pin)==1){
+		ID+=8;
+	}
 	if(HAL_GPIO_ReadPin(SW5_GPIO_Port, SW5_Pin)==1){
 		ID+=16;
 	}
@@ -141,7 +144,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  for(uint8_t i=0; i<64; i++){
+  for(uint8_t i=0; i<128; i++){
 	  rxBuf[i] = 255;
   }
 
@@ -161,7 +164,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_UART_Receive_DMA(&huart2, rxBuf, 64);
+  HAL_UART_Receive_DMA(&huart2, rxBuf, 128);
   HAL_Delay(1);
 
   // Start Motion
@@ -199,20 +202,17 @@ int main(void)
 	  Neopixel.show();
 	  HAL_Delay(10);
   }
-  HAL_Delay(3000);
+  HAL_Delay(1000);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-
   while (1)
   {
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
-	readBuf(&huart2, rxBuf, 64, Data, 12, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 30);
+	readBuf(&huart2, rxBuf, 128, Data, 30, 0, &p_wrtptA, &p_rdptA, &stop_counterA, &error_counterA, 60);
 	myid = readID();
+
 
 	circle_x = Data[0]-100;
 	circle_z = Data[1]-100;
@@ -226,12 +226,18 @@ int main(void)
 	square_h = Data[9];
 	square_s = Data[10];
 	square_v = Data[11];
+	for(uint8_t i=0; i<6; i++){
+		image_id[i] = Data[12+(i*3)];
+		image_x[i] = Data[13+(i*3)]-100;
+		image_z[i] = Data[14+(i*3)]-100;
+	}
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
 	  Neopixel.clear();
+
 
 	  //----------------------------------------------
 	  uint16_t PANEL_START_X = 0;
@@ -270,14 +276,51 @@ int main(void)
 			  }
 
 			  //CIRCLE
-			  int8_t cx = 47-circle_x;
-			  int8_t cz = circle_z;
-			  uint8_t cr = circle_r;
-			  uint8_t myx = x;
-			  uint8_t myz = z;
-			  float distance = (myx-cx)*(myx-cx)+(myz-cz)*(myz-cz);
-			  if(cr*cr>=distance){
-				hue = circle_h; sat = circle_s; val = circle_v;
+			  if(circle_r != 0){
+				  int8_t cx = 47-circle_x;
+				  int8_t cz = circle_z;
+				  uint8_t cr = circle_r;
+				  uint8_t myx = x;
+				  uint8_t myz = z;
+				  float distance = (myx-cx)*(myx-cx)+(myz-cz)*(myz-cz);
+				  if(cr*cr>=distance){
+					hue = circle_h; sat = circle_s; val = circle_v;
+				  }
+			  }
+
+			  //image
+			  for(uint8_t i=0; i<6; i++){
+				  if(image_id[i] != 0){
+					  int8_t cx = 47-image_x[i];
+					  int8_t cz = image_z[i];
+					  if(image_id[i] == 1){ //fish_15x6[6][15]
+						  // xが　cxからcx+15の間かどうか
+						  //cxからの距離
+						  int8_t xx = x - cx;
+						  int8_t zz = z - cz;
+						  if((0<=xx && xx<15) && (0<=zz && zz<6)){
+							  //範囲内。色をつけよう。
+							  if(fish_15x6[zz][xx] == 1){ //目ん玉
+								hue = 90; sat = 250; val = 200;
+							  }else if(fish_15x6[zz][xx] == 2){ //体
+								hue = 14; sat = 255; val = 150;
+							  }
+						  }
+					  }else if(image_id[i] == 2){ //fish_15x6[6][15]
+						  // xが　cxからcx+15の間かどうか
+						  //cxからの距離
+						  int8_t xx = x - cx;
+						  int8_t zz = z - cz;
+						  if((0<=xx && xx<15) && (0<=zz && zz<6)){
+							  //範囲内。色をつけよう。
+							  if(fish_15x6[zz][14-xx] == 1){ //目ん玉
+								hue = 90; sat = 250; val = 200;
+							  }else if(fish_15x6[zz][14-xx] == 2){ //体
+								hue = 14; sat = 255; val = 150;
+							  }
+						  }
+					  }
+				  }
 			  }
 
 			  //SET
@@ -291,6 +334,12 @@ int main(void)
 		  }
 	  }
 	  Neopixel.show();
+
+
+
+
+
+
   }
   /* USER CODE END 3 */
 }
