@@ -136,13 +136,15 @@ int main(void)
 	ssd1306_Fill(Black);
 	ssd1306_UpdateScreen(&hi2c1);
 
-	HAL_Delay(1000);
+	HAL_Delay(100);
 	ssd1306_SetCursor(7,13);
 	ssd1306_WriteString("Tomoshibi",Font_11x18,White);
 	ssd1306_SetCursor(12,33);
-	ssd1306_WriteString("Technology",Font_11x18,Black);
+	ssd1306_WriteString("Technology",Font_11x18,White);
 
 	ssd1306_UpdateScreen(&hi2c1);
+
+	HAL_Delay(1000);
 
   while (1)
   {
@@ -164,11 +166,34 @@ int main(void)
 	radius = sqrt(stick[0]*stick[0] + stick[1]*stick[1]) * 250/2600;
 	if(radius>255 || radius==250 )radius = 255;
 
-
-	mode = HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15)<<1 | HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13);
+	uint8_t vol = HAL_GPIO_ReadPin (GPIOC, GPIO_PIN_4);
+	mode = vol<<2 | HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15)<<1 | HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	char buf[32];
+	ssd1306_Fill(Black);
+
+	ssd1306_SetCursor(0,0);
+    snprintf(buf, sizeof(buf), "t:%3d r:%3d", theta, radius);
+	ssd1306_WriteString(buf,Font_11x18,White);
+
+	ssd1306_SetCursor(0,20);
+//    snprintf(buf, sizeof(buf), "vol:%d", vol);
+//	ssd1306_WriteString(buf,Font_11x18,White);
+	if(vol==0){
+		ssd1306_WriteString("vol:Display",Font_11x18,White);
+	}else{
+		ssd1306_WriteString("vol:Arm",Font_11x18,White);
+	}
+
+	ssd1306_SetCursor(0,40);
+    snprintf(buf, sizeof(buf), "mode:%d", mode);
+	ssd1306_WriteString(buf,Font_11x18,White);
+
+	ssd1306_UpdateScreen(&hi2c1);
+
 	uint8_t send_array[5] = {250,Data[3],theta,radius,mode};//start, h, x, y, mode
 	HAL_UART_Transmit(&huart5, send_array, 5, 1);
   }
@@ -413,6 +438,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
