@@ -18,8 +18,10 @@ class PERFORMANCE{
 	uint8_t* camera_array;
 	int16_t* movement_array;
 	int16_t* display_array;
+	int16_t* cur_speed_pol_array;
 
 	int16_t first_position_array[2];
+	int16_t line_position_array[2];
 
 	int16_t* circle_position_array;
 	int16_t* fish_position_array;
@@ -52,8 +54,11 @@ class PERFORMANCE{
 	uint8_t bad_ocean = 180;
 	uint8_t clean_ocean = 127;
 
+	uint16_t shrink_const = 700;
+
 	public:
-	PERFORMANCE(uint16_t* ptr_perform_array, uint8_t* ptr_camera_array, int16_t* ptr_movement_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array);
+	PERFORMANCE(uint16_t* ptr_perform_array, uint8_t* ptr_camera_array, int16_t* ptr_movement_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array, int16_t* ptr_cur_speed_pol_array);
+	void get_target_status_demo(uint32_t count);
 	void get_target_status_superteam(uint32_t time);
 	void get_target_status(uint32_t time);
 	int get_shutdown();
