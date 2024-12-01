@@ -420,16 +420,16 @@ int main(void)
 	set_array(MTRS, send_array);
 
 //stop_flag
-	if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) != 1){stop_flag = 0;}
+	if(HAL_GPIO_ReadPin(STRTSW_GPIO_Port, STRTSW_Pin) != 1){stop_flag = 0;}//if Pin == 0, stop
 //	else if(stop_counter > 10000){stop_flag = 0;}
 //	else if(error_counter > 10000){stop_flag = 0;}
-	else if(performance.get_shutdown() != 1){stop_flag = 0;}
-	else{stop_flag = 1;}
+	else if(performance.get_shutdown() != 1){stop_flag = 0;}//if shdn_flag == 0, stop
+	else{stop_flag = 1;}//move
 
 //send to motor
-	if(stop_flag == 1){
+	if(stop_flag == 1){//if stop_flag == 1, move
 	  HAL_UART_Transmit(&huart6, send_array, 12, 1);
-	}else{
+	}else{//if stop_flag == 0, stop
 		for(int i=0; i<4; i++){
 		  send_array[3*i] = 250 + i;
 		  send_array[3*i + 1] = 210;

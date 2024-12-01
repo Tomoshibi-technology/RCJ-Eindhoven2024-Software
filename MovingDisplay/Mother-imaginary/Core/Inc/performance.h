@@ -59,9 +59,9 @@ class PERFORMANCE{
 	public:
 	PERFORMANCE(uint16_t* ptr_perform_array, uint8_t* ptr_camera_array, int16_t* ptr_movement_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array, int16_t* ptr_cur_speed_pol_array);
 	void get_target_status_demo(uint32_t count);
-	void get_target_status_superteam(uint32_t time);
-	void get_target_status(uint32_t time);
+//	void get_target_status_superteam(uint32_t time);
+//	void get_target_status(uint32_t time);
 	int get_shutdown();
 	int get_fixing();
-	int get_emission();
+//	int get_emission();
 };

@@ -1,0 +1,17 @@
+../Core/Src/main.cpp:147:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
+../Core/Src/main.cpp:159:5:int main()	20
+../Core/Src/main.cpp:527:6:void SystemClock_Config()	4
+../Core/Src/main.cpp:582:13:void MX_I2C1_Init()	2
+../Core/Src/main.cpp:616:13:void MX_TIM2_Init()	4
+../Core/Src/main.cpp:661:13:void MX_TIM4_Init()	6
+../Core/Src/main.cpp:720:13:void MX_UART5_Init()	2
+../Core/Src/main.cpp:753:13:void MX_USART2_UART_Init()	2
+../Core/Src/main.cpp:786:13:void MX_USART3_UART_Init()	2
+../Core/Src/main.cpp:819:13:void MX_USART6_UART_Init()	2
+../Core/Src/main.cpp:850:13:void MX_DMA_Init()	1
+../Core/Src/main.cpp:871:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:915:6:void speed_set(int, int, int, int16_t*, float)	12
+../Core/Src/main.cpp:957:6:void set_array(int16_t*, uint8_t*)	3
+../Core/Src/main.cpp:967:6:void readBuf(UART_HandleTypeDef*, uint8_t*, int, uint8_t*, int, uint8_t, uint8_t*, uint8_t*, uint16_t*, uint16_t*, uint8_t)	19
+../Core/Src/main.cpp:1052:6:void Error_Handler()	1
+C:\ST\STM32CubeIDE_1.15.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/include/c++/12.3.1/cmath:415:5:constexpr typename __gnu_cxx::__promote_2<_Tp, _Up>::__type std::pow(_Tp, _Up) [with _Tp = short int; _Up = int]	1
