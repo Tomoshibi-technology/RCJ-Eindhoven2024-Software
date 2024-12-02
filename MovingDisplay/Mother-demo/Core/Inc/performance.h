@@ -57,7 +57,7 @@ class PERFORMANCE{
 	uint16_t shrink_const = 700;
 
 	public:
-	PERFORMANCE(uint16_t* ptr_perform_array, uint8_t* ptr_camera_array, int16_t* ptr_movement_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array, int16_t* ptr_cur_speed_pol_array);
+	PERFORMANCE(uint16_t* ptr_perform_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array);
 	void get_target_status_demo(uint32_t count);
 	int get_shutdown();
 	int get_fixing();

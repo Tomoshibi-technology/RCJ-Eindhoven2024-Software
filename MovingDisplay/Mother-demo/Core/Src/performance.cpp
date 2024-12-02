@@ -1,13 +1,12 @@
 
 #include "performance.h"
 
-PERFORMANCE::PERFORMANCE(uint16_t* ptr_perform_array, uint8_t* ptr_camera_array, int16_t* ptr_movement_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array, int16_t* ptr_cur_speed_pol_array){
-	perform_array = ptr_perform_array;//tweliteからのデータ
-	display_array = ptr_display_array;
-	circle_position_array = ptr_circle_position_array;
-	fish_position_array = ptr_fish_position_array;
-	position_array = ptr_position_array;
-	cur_speed_pol_array = ptr_cur_speed_pol_array;
+PERFORMANCE::PERFORMANCE(uint16_t* ptr_perform_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array){
+	perform_array = ptr_perform_array;//TweLiteからのデータ
+	display_array = ptr_display_array;//displayに送るデータ
+	circle_position_array = ptr_circle_position_array;//円の絶対座標
+	fish_position_array = ptr_fish_position_array;//おさかなの絶対座標
+	position_array = ptr_position_array;//ロボットの絶対座標 {x, y, speed}
 
 	circle_position_array[0] = position_array[0];
 	circle_position_array[1] = 24 * 10;

@@ -58,34 +58,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := Mother-imaginary
+BUILD_ARTIFACT_NAME := Mother-demo
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-Mother-imaginary.elf \
+Mother-demo.elf \
 
 MAP_FILES += \
-Mother-imaginary.map \
+Mother-demo.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-Mother-imaginary.list \
+Mother-demo.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: Mother-imaginary.elf secondary-outputs
+main-build: Mother-demo.elf secondary-outputs
 
 # Tool invocations
-Mother-imaginary.elf Mother-imaginary.map: $(OBJS) $(USER_OBJS) C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\Mother-imaginary\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "Mother-imaginary.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\Mother-imaginary\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Mother-imaginary.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+Mother-demo.elf Mother-demo.map: $(OBJS) $(USER_OBJS) C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\Mother-demo\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "Mother-demo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\TomoshibiRepository\RCJ-Eindhoven2024-Software\MovingDisplay\Mother-demo\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Mother-demo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -94,14 +94,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-Mother-imaginary.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "Mother-imaginary.list"
+Mother-demo.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "Mother-demo.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) Mother-imaginary.elf Mother-imaginary.list Mother-imaginary.map default.size.stdout
+	-$(RM) Mother-demo.elf Mother-demo.list Mother-demo.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
