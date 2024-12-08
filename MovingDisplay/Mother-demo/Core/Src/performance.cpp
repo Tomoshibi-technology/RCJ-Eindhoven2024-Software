@@ -1,34 +1,25 @@
 
 #include "performance.h"
 
-PERFORMANCE::PERFORMANCE(uint16_t* ptr_perform_array, int16_t* ptr_display_array, int16_t* ptr_circle_position_array, int16_t* ptr_fish_position_array, int16_t* ptr_position_array){
+PERFORMANCE::PERFORMANCE(uint16_t* ptr_perform_array, int16_t* ptr_display_array, int16_t* ptr_circle_relative_position_array, int16_t* ptr_fish_relative_position_array, int16_t* ptr_now_position_array){
 	perform_array = ptr_perform_array;//TweLiteからのデータ
 	display_array = ptr_display_array;//displayに送るデータ
-	circle_position_array = ptr_circle_position_array;//円の絶対座標
-	fish_position_array = ptr_fish_position_array;//おさかなの絶対座標
-	position_array = ptr_position_array;//ロボットの絶対座標 {x, y, speed}
+	circle_relative_position_array = ptr_circle_relative_position_array;//円の相対座標
+	fish_relative_position_array = ptr_fish_relative_position_array;//おさかなの相対座標
+	now_position_array = ptr_now_position_array;//ロボットの絶対座標 {x, y, speed}
 
-	circle_position_array[0] = position_array[0];
+	circle_position_array[0] = now_position_array[0];
 	circle_position_array[1] = 24 * 10;
 	circle_position_array[2] = r_standard * 10;//r
 
 }
 
+void PERFORMANCE::get_drawing_status_performance(){
 
-int PERFORMANCE::get_shutdown(){
-	return shdn_flag;
 }
 
-int PERFORMANCE::get_fixing(){
-	return fix_flag;
-}
 
-//int PERFORMANCE::get_emission(){
-//	return emission_flag;
-//}
-
-
-void PERFORMANCE::get_target_status_demo(uint32_t count){
+void PERFORMANCE::cal_drawing_status_perfomance(uint32_t count){
 
 //	perform_array[0] = hue
 //	perform_array[1] = θ
@@ -39,24 +30,10 @@ void PERFORMANCE::get_target_status_demo(uint32_t count){
 	//モードを処理して描画モードを選択する
 	//停止、まる固定、おさかな固定,まる運び
 
-	cur_speed_pol_array[0] = perform_array[2] * 25 / 10;//速度
-	cur_speed_pol_array[1] = perform_array[1] * 45 / 32;//角度
-	cur_speed_pol_array[1] = 270 - cur_speed_pol_array[1];
-
-//フラグ
-	if(perform_array[3] == 0){
-		shdn_flag = 0;//stop
-	}else if(perform_array[3] == 1 || perform_array[3] == 2 || perform_array[3] == 3){
-		shdn_flag = 1;//move
-	}else{
-		shdn_flag = 0;//stop
-	}
-
-	fix_flag = 1;//固定表現
 
 //ラインポジション
-	line_position_array[0] = position_array[0] - 220;
-	line_position_array[1] = position_array[0] + 220;
+	line_position_array[0] = now_position_array[0] - 220;
+	line_position_array[1] = now_position_array[0] + 220;
 
 //サークルポジション
 	//circle_position_array[0]は基本前の値と同じ
@@ -64,7 +41,7 @@ void PERFORMANCE::get_target_status_demo(uint32_t count){
 	circle_position_array[1] = 24 * 10;
 
 	circle_position_array[2] = r_standard * 10;//r
-	circle_position_array[2] = circle_position_array[2] - position_array[1] * circle_position_array[2] / shrink_const;//前後
+	circle_position_array[2] = circle_position_array[2] - now_position_array[1] * circle_position_array[2] / shrink_const;//前後
 //	if(perform_array[3] == 0){
 //		circle_position_array[2] = circle_position_array[2] + circle_position_array[2] * sin() / 8;
 //	}else{}
